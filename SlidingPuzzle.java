@@ -63,6 +63,10 @@ abstract class GridGame<T> {
         while (!isGameOver) {
             displayGrid();
             processUserInput();
+            if (!isValidMove()) {
+                displayInvalidInputMessage();
+                continue; // Skip to the next iteration if the move is invalid
+            }
             isGameOver = checkWinCondition();
         }
 
