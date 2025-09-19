@@ -165,7 +165,7 @@ abstract class GridGame<T> {
      * @param col The column index of the move.
      */
     protected abstract void makeMove(int row, int col);
-    
+
     /**
      * Prints a message indicating that the player's input was invalid.
      */
@@ -296,7 +296,8 @@ public class SlidingPuzzle extends GridGame<Integer> {
             numbers.add(i);
         }
 
-        // Fill the grid in a solved state with the empty cell at the bottom-right corner
+        // Fill the grid in a solved state with the empty cell at the bottom-right
+        // corner
         Iterator<Integer> iterator = numbers.iterator();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -343,7 +344,7 @@ public class SlidingPuzzle extends GridGame<Integer> {
                     if (grid[i][j] == move_tile) {
                         // Check if the tile is adjacent to the empty cell
                         if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) || // Up or Down
-                        (Math.abs(emptyCol - j) == 1 && emptyRow == i)) { // Left or Right
+                                (Math.abs(emptyCol - j) == 1 && emptyRow == i)) { // Left or Right
                             makeMove(i, j);
                             return;
                         }
@@ -359,5 +360,25 @@ public class SlidingPuzzle extends GridGame<Integer> {
             displayGrid();
             processUserInput();
         }
+    }
+
+    @Override
+    protected boolean checkWinCondition() {
+        // if the empty cell is not in the bottom-right corner, return false immediately
+        if (grid[rows - 1][cols - 1] != 0) {
+            return false;
+        }
+
+        // Check if the numbers are in ascending order
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (grid[i][j] != i * cols + j + 1) {
+                    return false;
+                }
+            }
+        }
+
+        // If all checks passed, the game is won
+        return true;
     }
 }
