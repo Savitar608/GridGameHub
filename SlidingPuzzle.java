@@ -306,6 +306,8 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
         double exponent = 1.5; // Exponent to scale with grid size
         double gridSize = rows * cols;
+
+        // Calculate shuffle moves using a custom formula
         return (int) (baseMultiplier * Math.pow(gridSize, exponent));
     }
 
