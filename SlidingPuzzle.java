@@ -33,6 +33,7 @@ abstract class GridGame<T> {
         this.grid = tempGrid;
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
+        this.playerName = "Master Chief"; // Can be set later if needed. Setting a default name.
     }
 
     /**
@@ -41,6 +42,7 @@ abstract class GridGame<T> {
     public void play() {
         initializeGame();
         displayWelcomeMessage();
+        
 
         // Looping over the game until it's over
         while (!isGameOver) {
@@ -60,6 +62,25 @@ abstract class GridGame<T> {
      * Validates the size of the grid.
      */
     protected abstract void validateSize();
+
+    protected void setPlayerName(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.playerName = name.trim();
+        } else {
+            // setting a default name and displaying a warning
+            System.out.println("Warning: Invalid name provided. Setting default name.");
+            this.playerName = "Gamer-X";
+        }
+    }
+
+    /**
+     * Returns the player's name for display purposes.
+     *
+     * @return the player's name.
+     */
+    protected String getPlayerInfo() {
+        return playerName != null ? playerName : "Player";
+    }
 
     /**
      * Prints the game's welcome message and rules.
