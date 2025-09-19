@@ -355,10 +355,7 @@ public class SlidingPuzzle extends GridGame<Integer> {
             // Handling invalid move (not adjacent)
             System.out.println("Invalid move. The tile must be adjacent to the empty space.");
         } catch (NumberFormatException e) {
-            System.out.println("Invalid input. Please enter a valid tile number.");
-            scanner.nextLine(); // Clear the invalid input
-            displayGrid();
-            processUserInput();
+            displayInvalidInputMessage();
         }
     }
 
@@ -380,5 +377,14 @@ public class SlidingPuzzle extends GridGame<Integer> {
 
         // If all checks passed, the game is won
         return true;
+    }
+
+    @Override
+    protected void displayInvalidInputMessage() {
+        System.out.println("Invalid input. Please try again.");
+
+        scanner.nextLine(); // Clear the invalid input
+        displayGrid(); // Re-display the grid
+        processUserInput(); // Prompt for input again
     }
 }
