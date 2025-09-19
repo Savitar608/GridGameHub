@@ -60,12 +60,22 @@ abstract class GridGame<T> {
         this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL; // Default difficulty level
     }
 
+
+    /**
+     * Starts the game by displaying the welcome message and setting the player name.
+     */
+    public void startGame() {
+        this.isGameOver = false; // Reset game over status
+        displayWelcomeMessage();
+        setPlayerName();
+
+        play();
+    }
+
     /**
      * The main public method to start and run the game.
      */
-    public void play() {
-        displayWelcomeMessage();
-        setPlayerName();
+    private void play() {
         setSize();
         setDifficultyLevel();
         initializeGame();
@@ -82,7 +92,6 @@ abstract class GridGame<T> {
 
         displayGrid();
         displayWinMessage();
-        scanner.close();
     }
 
     /* Abstract Methods to be Implemented by Child Classes */
@@ -447,7 +456,16 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         // Display the final grid and a congratulatory message
         System.out.println("Congratulations " + getPlayerInfo() + "! You've solved the puzzle! 🎉");
         displayGrid();
+
+        // Ask if the player wants to play again
+        System.out.println("Would you like to play again? (yes/no)");
+        String response = scanner.nextLine().trim().toLowerCase();
+        if (response.equals("yes") || response.equals("y")) {
+            play(); // Restart the game
+        }
+
         System.out.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
+        scanner.close();
     }
 
 
