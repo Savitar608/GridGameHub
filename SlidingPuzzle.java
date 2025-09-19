@@ -15,6 +15,18 @@ abstract class GridGame<T> {
     protected String playerName;
     protected int difficultyLevel;
 
+    private static final String DEFAULT_PLAYER_NAME = "Master Chief";
+    private static final int DEFAULT_DIFFICULTY_LEVEL = 1; // Easy
+
+    private static final Map<Integer, String> difficultyLevels;
+    static {
+        Map<Integer, String> temp = new HashMap<>();
+        temp.put(1, "Easy");
+        temp.put(2, "Medium");
+        temp.put(3, "Hard");
+        difficultyLevels = Collections.unmodifiableMap(temp);
+    }
+
     /**
      * Constructor to initialize the game.
      *
@@ -25,16 +37,17 @@ abstract class GridGame<T> {
         if (rows < 1 || cols < 1) {
             throw new IllegalArgumentException("Row and column sizes must be positive integers.");
         }
-    
+
         @SuppressWarnings("unchecked")
         // Java does not allow the direct creation of generic arrays apparently
         T[][] tempGrid = (T[][]) java.lang.reflect.Array.newInstance(clazz, rows, cols);
-    
+
         // Initialize the grid and game state
         this.grid = tempGrid;
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
-        this.playerName = "Master Chief"; // Can be set later if needed. Setting a default name.
+        this.playerName = DEFAULT_PLAYER_NAME; // Can be set later if needed. Setting a default name.
+        this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL; // Default difficulty level
     }
 
     /**
@@ -43,7 +56,8 @@ abstract class GridGame<T> {
     public void play() {
         initializeGame();
         displayWelcomeMessage();
-        
+        setPlayerName();
+        setDifficultyLevel();
 
         // Looping over the game until it's over
         while (!isGameOver) {
@@ -64,13 +78,16 @@ abstract class GridGame<T> {
      */
     protected abstract void validateSize();
 
-    protected void setPlayerName(String name) {
-        if (name != null && !name.trim().isEmpty()) {
-            this.playerName = name.trim();
+    protected void setPlayerName() {
+        System.out.print("Enter player name: ");
+        String playerName = scanner.nextLine();
+
+        if (playerName != null && !playerName.trim().isEmpty()) {
+            this.playerName = playerName.trim();
         } else {
             // setting a default name and displaying a warning
             System.out.println("Warning: Invalid name provided. Setting default name.");
-            this.playerName = "Gamer-X";
+            this.playerName = DEFAULT_PLAYER_NAME; // Default name
         }
     }
 
@@ -80,20 +97,37 @@ abstract class GridGame<T> {
      * @return the player's name.
      */
     protected String getPlayerInfo() {
-        return playerName != null ? playerName : "Player";
+        // Return the player's name or a default if not set
+        return playerName != null ? playerName : DEFAULT_PLAYER_NAME;
     }
-
 
     /**
      * Sets the difficulty level of the game.
      *
      * @param level The difficulty level (1 to 3).
      */
-    protected void setDifficultyLevel(int level) {
-        if (level < 1 || level > 3) {
-            throw new IllegalArgumentException("Difficulty level must be between 1 and 3.");
+    protected void setDifficultyLevel() {
+        System.out.println("Choose difficulty level: 1 (Easy), 2 (Medium), 3 (Hard)");
+        String chosenLevel = scanner.nextLine();
+
+        try {
+            // Parse the input to an integer
+            int level = Integer.parseInt(chosenLevel);
+            this.difficultyLevel = level;
+        } catch (Exception e) {
+            // If parsing fails, default to Easy
+            System.out.println("Invalid input. Defaulting to Easy.");
+            this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL;
         }
-        this.difficultyLevel = level;
+
+        // Validate the level
+        // If invalid, default to Easy
+        if (this.difficultyLevel < 1 || this.difficultyLevel > 3) {
+            System.out.println("Invalid level. Defaulting to Easy.");
+            this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL;
+        }
+
+        System.out.println("Difficulty set to: " + difficultyLevels.get(difficultyLevel));
     }
 
     /**
@@ -105,7 +139,7 @@ abstract class GridGame<T> {
      * Sets up the initial state of the grid and game variables.
      */
     protected abstract void initializeGame();
-    
+
     /**
      * Renders the current state of the grid to the console.
      */
@@ -141,11 +175,10 @@ abstract class GridGame<T> {
     protected abstract void displayWinMessage();
 }
 
-
 public class SlidingPuzzle extends GridGame<Integer> {
     public static final int MIN_SIZE = 2;
     private static final String EMPTY_CELL = "  ";
-    
+
     private int emptyRow;
     private int emptyCol;
 
