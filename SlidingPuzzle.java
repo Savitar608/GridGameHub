@@ -399,6 +399,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             for (int j = 0; j < cols; j++) {
                 if (grid[i][j] != i * cols + j + 1) {
                     // If a number is out of place, the puzzle is not solved
+                    System.out.println(i + ", " + j + "are not in place");
                     return false;
                 }
             }
