@@ -207,14 +207,18 @@ abstract class GridGame<T> {
 class SlidingPuzzleGame extends GridGame<Integer> {
     public static final int MIN_SIZE = 2;
     private static final String EMPTY_CELL = "  ";
-
+    
     // Position of the empty cell
     private int emptyRow;
     private int emptyCol;
-
+    
     // Default values
     private static final int DEFAULT_ROWS = 3; // Default rows
     private static final int DEFAULT_COLS = 3; // Default columns
+
+    // Constraints on grid size
+    public static final int MAX_ROWS = 20; // Maximum rows allowed
+    public static final int MAX_COLS = 20; // Maximum columns allowed
 
     /**
      * Validates the size of the grid.
@@ -229,7 +233,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      * Sets the size of the grid based on user input.
      */
     protected void setSize() {
-        System.out.print("Enter grid size (rows cols): ");
+        System.out.print("Enter grid size (rows cols) (Max " + MAX_ROWS + "x" + MAX_COLS + "): ");
         String sizeInput = scanner.nextLine();
         String[] parts = sizeInput.trim().split("\\s+");
 
@@ -243,6 +247,14 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                     return;
                 }
                 
+                // Validate the size against max constraints
+                if (rows < MIN_SIZE || cols < MIN_SIZE || rows > MAX_ROWS || cols > MAX_COLS) {
+                    System.out.println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+                    rows = DEFAULT_ROWS;
+                    cols = DEFAULT_COLS;
+                }
+
+                // Reinitialize the grid with the new size using Integer array directly
                 // Set the new size
                 this.rows = rows;
                 this.cols = cols;
@@ -250,10 +262,10 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                 // Reinitialize the grid with the new size using Integer array directly
                 this.grid = new Integer[rows][cols];
             } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Using default size.");
+                System.out.println("Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
             }
         } else {
-            System.out.println("Invalid input. Using default size.");
+            System.out.println("Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
         }
         // Validate the size
         validateSize();
