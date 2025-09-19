@@ -13,6 +13,7 @@ abstract class GridGame<T> {
     protected boolean isGameOver;
     protected Scanner scanner;
     protected String playerName;
+    protected int difficultyLevel;
 
     /**
      * Constructor to initialize the game.
@@ -80,6 +81,19 @@ abstract class GridGame<T> {
      */
     protected String getPlayerInfo() {
         return playerName != null ? playerName : "Player";
+    }
+
+
+    /**
+     * Sets the difficulty level of the game.
+     *
+     * @param level The difficulty level (1 to 3).
+     */
+    protected void setDifficultyLevel(int level) {
+        if (level < 1 || level > 3) {
+            throw new IllegalArgumentException("Difficulty level must be between 1 and 3.");
+        }
+        this.difficultyLevel = level;
     }
 
     /**
