@@ -210,7 +210,7 @@ abstract class GridGame<T> {
     protected abstract void displayWinMessage();
 }
 
-public class SlidingPuzzle extends GridGame<Integer> {
+class SlidingPuzzleGame extends GridGame<Integer> {
     public static final int MIN_SIZE = 2;
     private static final String EMPTY_CELL = "  ";
 
@@ -276,7 +276,7 @@ public class SlidingPuzzle extends GridGame<Integer> {
      * @param row The number of rows in the grid.
      * @param col The number of columns in the grid.
      */
-    public SlidingPuzzle(int row, int col) {
+    public SlidingPuzzleGame() {
         super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS);
     }
 
@@ -316,11 +316,12 @@ public class SlidingPuzzle extends GridGame<Integer> {
 
     @Override
     protected void initializeGame() {
-        // Create a list of numbers from 0 to rows*cols-1
+        // Create a list of numbers from 1 to rows*cols-1
         List<Integer> numbers = new ArrayList<>();
-        for (int i = 0; i < rows * cols; i++) {
+        for (int i = 1; i < rows * cols; i++) {
             numbers.add(i);
         }
+        numbers.add(0); // 0 represents the empty cell
 
         // Fill the grid in a solved state with the empty cell at the bottom-right
         // corner
@@ -351,11 +352,12 @@ public class SlidingPuzzle extends GridGame<Integer> {
                 makeMove(move[0], move[1]);
             }
         }
+        isGameOver = false; // Reset game over status
     }
 
     @Override
     protected void processUserInput() {
-        System.out.println(getPlayerInfo() + ", which tile do you want to slide to the empty space? ");
+        System.out.print(getPlayerInfo() + ", which tile do you want to slide to the empty space? ");
         String input = scanner.nextLine();
         try {
             int move_tile = Integer.parseInt(input);
@@ -396,6 +398,7 @@ public class SlidingPuzzle extends GridGame<Integer> {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (grid[i][j] != i * cols + j + 1) {
+                    // If a number is out of place, the puzzle is not solved
                     return false;
                 }
             }
@@ -416,11 +419,57 @@ public class SlidingPuzzle extends GridGame<Integer> {
 
     @Override
     protected void displayWinMessage() {
-        // clear the console (works in most terminals)
+        // clear the console
         System.out.print("\033[H\033[2J");
         System.out.flush();
+
+        // Display the final grid and a congratulatory message
         System.out.println("Congratulations " + getPlayerInfo() + "! You've solved the puzzle! 🎉");
         displayGrid();
         System.out.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
+    }
+
+
+    @Override
+    protected void displayGrid() {
+        StringBuilder sb = new StringBuilder();
+        
+        // Print the top border
+        sb.append("+");
+        for (int j = 0; j < cols; j++) {
+            sb.append("--+");
+        }
+        sb.append("\n");
+
+        // Print each row of the grid
+        for (int i = 0; i < rows; i++) {
+            sb.append("|");
+            for (int j = 0; j < cols; j++) {
+                if (grid[i][j] == 0) {
+                    sb.append(EMPTY_CELL).append("|");
+                } else {
+                    sb.append(String.format("%2d", grid[i][j])).append("|");
+                }
+            }
+
+            // Print the row separator
+            sb.append("\n+");
+            
+            for (int j = 0; j < cols; j++) {
+                sb.append("--+");
+            }
+            sb.append("\n");
+        }
+
+        System.out.println(sb.toString());
+    }
+}
+
+/* SlidingPuzzle.java */
+public class SlidingPuzzle {
+    // Main method to start the game
+    public static void main(String[] args) {
+        SlidingPuzzleGame game = new SlidingPuzzleGame();
+        game.play();
     }
 }
