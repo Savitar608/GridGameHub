@@ -57,6 +57,11 @@ abstract class GridGame<T> {
     /* Abstract Methods to be Implemented by Child Classes */
 
     /**
+     * Validates the size of the grid.
+     */
+    protected abstract void validateSize();
+
+    /**
      * Prints the game's welcome message and rules.
      */
     protected abstract void displayWelcomeMessage();
