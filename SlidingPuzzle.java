@@ -229,6 +229,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     private String topLeftCorner = "+";
     private String horizontalBorder = "--+";
     private String verticalBorder = "|";
+    private String cellFormat = "%2d";
 
     /**
      * Validates the size of the grid.
@@ -273,10 +274,16 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                 // Reinitialize the grid with the new size using Integer array directly
                 this.grid = new Integer[rows][cols];
 
-                // Define border characters
-                horizontalBorder = (rows * cols < 100) ? "--+" : "---+";
-                emptyCell = (rows * cols < 100) ? "  " : "   ";
-
+                // Adjust border and cell format based on grid size
+                if (rows * cols < 100) {
+                    horizontalBorder = "--+";
+                    emptyCell = "  ";
+                    cellFormat = "%2d";
+                } else {
+                    horizontalBorder = "---+";
+                    emptyCell = "   ";
+                    cellFormat = "%3d";
+                }
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
             }
@@ -525,7 +532,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                 if (grid[i][j] == 0) {
                     sb.append(emptyCell).append(verticalBorder);
                 } else {
-                    sb.append(String.format("%3d", grid[i][j])).append(verticalBorder);
+                    sb.append(String.format(cellFormat, grid[i][j])).append(verticalBorder);
                 }
             }
 
