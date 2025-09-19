@@ -1,5 +1,6 @@
 import java.util.*;
 import java.lang.StringBuilder;
+import java.lang.reflect.Array;
 
 /**
  * An abstract base class for grid-based terminal games.
@@ -42,8 +43,12 @@ abstract class GridGame<T> {
         }
 
         @SuppressWarnings("unchecked")
-        // Java does not allow the direct creation of generic arrays apparently
-        T[][] tempGrid = (T[][]) java.lang.reflect.Array.newInstance(clazz, rows, cols);
+        // Create a 2D generic array properly using reflection
+        // Spent a lot of time figuring this out
+        T[][] tempGrid = (T[][]) Array.newInstance(clazz, rows, 0);
+        for (int i = 0; i < rows; i++) {
+            tempGrid[i] = (T[]) Array.newInstance(clazz, cols);
+        }
 
         // Initialize the grid and game state
         this.rows = rows;
@@ -59,11 +64,11 @@ abstract class GridGame<T> {
      * The main public method to start and run the game.
      */
     public void play() {
-        initializeGame();
         displayWelcomeMessage();
         setPlayerName();
         setSize();
         setDifficultyLevel();
+        initializeGame();
 
         // Looping over the game until it's over
         while (!isGameOver) {
@@ -122,14 +127,22 @@ abstract class GridGame<T> {
             try {
                 int rows = Integer.parseInt(parts[0]);
                 int cols = Integer.parseInt(parts[1]);
+
+                // if the size is the default size, skip reinitialization
+                if (rows == this.rows && cols == this.cols) {
+                    return;
+                }
                 
                 // Set the new size
                 this.rows = rows;
                 this.cols = cols;
 
-                // Reinitialize the grid with the new size
+                // Reinitialize the grid with the new size using proper generic array creation
                 @SuppressWarnings("unchecked")
-                T[][] tempGrid = (T[][]) java.lang.reflect.Array.newInstance(grid.getClass().getComponentType(), rows, cols);
+                T[][] tempGrid = (T[][]) Array.newInstance(Integer.class, rows, 0);
+                for (int i = 0; i < rows; i++) {
+                    tempGrid[i] = (T[]) Array.newInstance(Integer.class, cols);
+                }
                 this.grid = tempGrid;
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Using default size.");
@@ -417,8 +430,6 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     @Override
     protected void displayInvalidInputMessage() {
         System.out.println("Invalid input. Please try again.");
-
-        scanner.nextLine(); // Clear the invalid input
         displayGrid(); // Re-display the grid
         processUserInput(); // Prompt for input again
     }
