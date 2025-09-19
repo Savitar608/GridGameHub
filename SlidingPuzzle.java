@@ -114,9 +114,9 @@ abstract class GridGame<T> {
      * Sets the size of the grid.
      */
     protected void setSize() {
-        System.out.print("Enter grid size (rows x cols): ");
+        System.out.print("Enter grid size (rows cols): ");
         String sizeInput = scanner.nextLine();
-        String[] parts = sizeInput.trim().split("\\s+x\\s+");
+        String[] parts = sizeInput.trim().split("\\s+");
 
         if (parts.length == 2) {
             try {
@@ -126,6 +126,11 @@ abstract class GridGame<T> {
                 // Set the new size
                 this.rows = rows;
                 this.cols = cols;
+
+                // Reinitialize the grid with the new size
+                @SuppressWarnings("unchecked")
+                T[][] tempGrid = (T[][]) java.lang.reflect.Array.newInstance(grid.getClass().getComponentType(), rows, cols);
+                this.grid = tempGrid;
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Using default size.");
             }
@@ -239,13 +244,13 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     protected int getShuffleMoves() {
         switch (difficultyLevel) {
             case 1: // Easy
-                return 10;
+                return 300;
             case 2: // Medium
-                return 100;
+                return 1000;
             case 3: // Hard
-                return 500;
+                return 5000;
             default:
-                return 10; // Default to Easy if something goes wrong
+                return 300; // Default to Easy if something goes wrong
         }
     }
 
