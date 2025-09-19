@@ -403,9 +403,8 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
         // Shuffle the grid by making valid moves from the solved state
         // This ensures the puzzle is always solvable
-        // Number of random moves to shuffle the puzzle will depend on the difficulty
-        // level
-        // Easy: 10 moves, Medium: 100 moves, Hard: 500 moves
+        // Number of random moves to shuffle the puzzle will depend on the difficulty level
+        // and grid size
         int shuffleMoves = getShuffleMoves();
         for (int i = 0; i < shuffleMoves; i++) {
             List<int[]> possibleMoves = getPossibleMoves();
