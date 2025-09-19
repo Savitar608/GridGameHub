@@ -108,8 +108,30 @@ abstract class GridGame<T> {
 
 
 public class SlidingPuzzle extends GridGame<Integer> {
-    public SlidingPuzzle(int size) {
-        super(Integer.class, size, size);
+    public static final int MIN_SIZE = 2;
+
+    /**
+     * Validates the size of the grid.
+     */
+    protected void validateSize(int row, int col) {
+        if (row < MIN_SIZE || col < MIN_SIZE) {
+            throw new IllegalArgumentException("Grid size must be at least " + MIN_SIZE + "x" + MIN_SIZE);
+        }
+        if (row != col) {
+            throw new IllegalArgumentException("Grid must be square (rows must equal columns)");
+        }
+    }
+
+    /**
+     * Constructor to initialize the sliding puzzle game.
+     *
+     * @param row The number of rows in the grid.
+     * @param col The number of columns in the grid.
+     */
+    public SlidingPuzzle(int row, int col) {
+        super(Integer.class, row, col);
+
+        validateSize(row, col);
     }
 
     @Override
