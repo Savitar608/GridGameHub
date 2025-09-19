@@ -278,6 +278,17 @@ public class SlidingPuzzle extends GridGame<Integer> {
     }
 
     @Override
+    protected void makeMove(int row, int col) {
+        // Swap the empty cell with the selected cell
+        grid[emptyRow][emptyCol] = grid[row][col];
+        grid[row][col] = 0; // 0 represents the empty cell
+
+        // Update the position of the empty cell
+        emptyRow = row;
+        emptyCol = col;
+    }
+
+    @Override
     protected void initializeGame() {
         int size = grid.length;
 
