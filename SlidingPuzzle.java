@@ -37,7 +37,7 @@ abstract class GridGame<T> {
      * @param rows The number of rows in the grid.
      * @param cols The number of columns in the grid.
      */
-    public GridGame(Class<T> clazz, int rows, int cols) {
+    public GridGame(Class<T> componentType, int rows, int cols) {
         if (rows < 1 || cols < 1) {
             throw new IllegalArgumentException("Row and column sizes must be positive integers.");
         }
@@ -45,9 +45,9 @@ abstract class GridGame<T> {
         @SuppressWarnings("unchecked")
         // Create a 2D generic array properly using reflection
         // Spent a lot of time figuring this out
-        T[][] tempGrid = (T[][]) Array.newInstance(clazz, rows, 0);
+        T[][] tempGrid = (T[][]) Array.newInstance(componentType, rows, 0);
         for (int i = 0; i < rows; i++) {
-            tempGrid[i] = (T[]) Array.newInstance(clazz, cols);
+            tempGrid[i] = (T[]) Array.newInstance(componentType, cols);
         }
 
         // Initialize the grid and game state
