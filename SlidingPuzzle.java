@@ -136,6 +136,7 @@ abstract class GridGame<T> {
      */
     protected void setDifficultyLevel() {
         System.out.println("Hey " + getPlayerInfo() + ", choose your difficulty level: 1 (Easy), 2 (Medium), 3 (Hard)");
+        System.out.println("Note: The difficulty level increases exponentially with grid size");
         String chosenLevel = scanner.nextLine();
 
         try {
@@ -244,9 +245,9 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      * Sets the size of the grid based on user input.
      */
     protected void setSize() {
-        System.out.print("Enter grid size (rows cols) (Max " + MAX_ROWS + "x" + MAX_COLS + "): ");
+        System.out.print("Enter grid size (rows x cols) (Max " + MAX_ROWS + " x " + MAX_COLS + "): ");
         String sizeInput = scanner.nextLine();
-        String[] parts = sizeInput.trim().split("\\s+");
+        String[] parts = sizeInput.trim().split("\\s*x\\s*");
 
         if (parts.length == 2) {
             try {
