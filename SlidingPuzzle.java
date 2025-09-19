@@ -21,10 +21,14 @@ abstract class GridGame<T> {
      * @param cols The number of columns in the grid.
      */
     public GridGame(Class<T> clazz, int rows, int cols) {
+        if (rows < 1 || cols < 1) {
+            throw new IllegalArgumentException("Row and column sizes must be positive integers.");
+        }
+    
         @SuppressWarnings("unchecked")
         // Java does not allow the direct creation of generic arrays apparently
         T[][] tempGrid = (T[][]) java.lang.reflect.Array.newInstance(clazz, rows, cols);
-
+    
         // Initialize the grid and game state
         this.grid = tempGrid;
         this.isGameOver = false;
