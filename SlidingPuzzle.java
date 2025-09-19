@@ -62,6 +62,7 @@ abstract class GridGame<T> {
         initializeGame();
         displayWelcomeMessage();
         setPlayerName();
+        setSize();
         setDifficultyLevel();
 
         // Looping over the game until it's over
@@ -109,6 +110,31 @@ abstract class GridGame<T> {
         return playerName != null ? playerName : DEFAULT_PLAYER_NAME;
     }
 
+    /**
+     * Sets the size of the grid.
+     */
+    protected void setSize() {
+        System.out.print("Enter grid size (rows x cols): ");
+        String sizeInput = scanner.nextLine();
+        String[] parts = sizeInput.trim().split("\\s+x\\s+");
+
+        if (parts.length == 2) {
+            try {
+                int rows = Integer.parseInt(parts[0]);
+                int cols = Integer.parseInt(parts[1]);
+                
+                // Set the new size
+                this.rows = rows;
+                this.cols = cols;
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Using default size.");
+            }
+        } else {
+            System.out.println("Invalid input. Using default size.");
+        }
+        // Validate the size
+        validateSize();
+    }
     /**
      * Sets the difficulty level of the game.
      *
@@ -188,8 +214,13 @@ public class SlidingPuzzle extends GridGame<Integer> {
     public static final int MIN_SIZE = 2;
     private static final String EMPTY_CELL = "  ";
 
+    // Position of the empty cell
     private int emptyRow;
     private int emptyCol;
+
+    // Default values
+    private static final int DEFAULT_ROWS = 3; // Default rows
+    private static final int DEFAULT_COLS = 3; // Default columns
 
     /**
      * Validates the size of the grid.
@@ -246,9 +277,7 @@ public class SlidingPuzzle extends GridGame<Integer> {
      * @param col The number of columns in the grid.
      */
     public SlidingPuzzle(int row, int col) {
-        super(Integer.class, row, col);
-
-        validateSize();
+        super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS);
     }
 
     @Override
