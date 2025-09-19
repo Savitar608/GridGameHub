@@ -68,6 +68,7 @@ abstract class GridGame<T> {
         displayWelcomeMessage();
         setPlayerName();
 
+        // Start the main game loop
         play();
     }
 
@@ -454,7 +455,6 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
         // Display the final grid and a congratulatory message
         System.out.println("Congratulations " + getPlayerInfo() + "! You've solved the puzzle! 🎉");
-        displayGrid();
 
         // Ask if the player wants to play again
         System.out.println("Would you like to play again? (yes/no)");
