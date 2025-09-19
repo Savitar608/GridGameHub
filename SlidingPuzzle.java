@@ -461,6 +461,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         String response = scanner.nextLine().trim().toLowerCase();
         if (response.equals("yes") || response.equals("y")) {
             play(); // Restart the game
+            return;
         }
 
         System.out.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
