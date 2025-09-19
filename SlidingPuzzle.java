@@ -156,4 +156,38 @@ public class SlidingPuzzle extends GridGame<Integer> {
         System.out.println("\nGood luck and have fun! 🧩");
         System.out.println("-----------------------------------------\n");
     }
+
+    @Override
+    protected void initializeGame() {
+        int size = grid.length;
+
+        // generate a random number between 1 and size*size
+        Random random = new Random();
+        int randomIndex = random.nextInt(size * size) + 1;
+
+        // Create a list of numbers from 1 to size*size
+        List<Integer> numbers = new ArrayList<>();
+        for (int i = 1; i <= size * size; i++) {
+            if (i != randomIndex) {
+                numbers.add(i);
+            } else {
+            // Leave one space for the empty cell
+            // Using 0 to represent the empty cell
+                numbers.add(0);
+            }
+        }
+
+        // Shuffle the numbers and fill the grid
+        Collections.shuffle(numbers);
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                int number = numbers.get(i * size + j);
+                if (number != 0) {
+                    grid[i][j] = number;
+                } else {
+                    grid[i][j] = null; // Representing the empty cell with null
+                }
+            }
+        }
+    }
 }
