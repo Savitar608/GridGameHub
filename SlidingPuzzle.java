@@ -144,6 +144,10 @@ abstract class GridGame<T> {
 
 public class SlidingPuzzle extends GridGame<Integer> {
     public static final int MIN_SIZE = 2;
+    private static final String EMPTY_CELL = "  ";
+    
+    private int emptyRow;
+    private int emptyCol;
 
     /**
      * Validates the size of the grid.
@@ -212,15 +216,14 @@ public class SlidingPuzzle extends GridGame<Integer> {
             }
         }
 
-        // Shuffle the numbers and fill the grid
-        Collections.shuffle(numbers);
+        // Fill the grid with the numbers in the right order
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                int number = numbers.get(i * size + j);
-                if (number != 0) {
-                    grid[i][j] = number;
-                } else {
-                    grid[i][j] = null; // Representing the empty cell with null
+                grid[i][j] = numbers.get(i * size + j);
+
+                if (grid[i][j] == 0) {
+                    emptyRow = i;
+                    emptyCol = j;
                 }
             }
         }
