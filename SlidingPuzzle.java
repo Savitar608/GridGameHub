@@ -59,9 +59,9 @@ abstract class GridGame<T> {
         this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL; // Default difficulty level
     }
 
-
     /**
-     * Starts the game by displaying the welcome message and setting the player name.
+     * Starts the game by displaying the welcome message and setting the player
+     * name.
      */
     public void startGame() {
         this.isGameOver = false; // Reset game over status
@@ -206,12 +206,11 @@ abstract class GridGame<T> {
 
 class SlidingPuzzleGame extends GridGame<Integer> {
     public static final int MIN_SIZE = 2;
-    private static final String EMPTY_CELL = "  ";
-    
+
     // Position of the empty cell
     private int emptyRow;
     private int emptyCol;
-    
+
     // Default values
     private static final int DEFAULT_ROWS = 3; // Default rows
     private static final int DEFAULT_COLS = 3; // Default columns
@@ -219,6 +218,12 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     // Constraints on grid size
     public static final int MAX_ROWS = 20; // Maximum rows allowed
     public static final int MAX_COLS = 20; // Maximum columns allowed
+
+    // Border characters and empty cell representation
+    private String emptyCell = "  ";
+    private String topLeftCorner = "+";
+    private String horizontalBorder = "--+";
+    private String verticalBorder = "|";
 
     /**
      * Validates the size of the grid.
@@ -246,10 +251,11 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                 if (rows == this.rows && cols == this.cols) {
                     return;
                 }
-                
+
                 // Validate the size against max constraints
                 if (rows < MIN_SIZE || cols < MIN_SIZE || rows > MAX_ROWS || cols > MAX_COLS) {
-                    System.out.println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+                    System.out
+                            .println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
                     rows = DEFAULT_ROWS;
                     cols = DEFAULT_COLS;
                 }
@@ -261,6 +267,11 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
                 // Reinitialize the grid with the new size using Integer array directly
                 this.grid = new Integer[rows][cols];
+
+                // Define border characters
+                horizontalBorder = (rows * cols < 100) ? "--+" : "---+";
+                emptyCell = (rows * cols < 100) ? "  " : "   ";
+
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
             }
@@ -450,7 +461,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                 if (i == rows - 1 && j == cols - 1) {
                     continue;
                 }
-                
+
                 if (grid[i][j] != i * cols + j + 1) {
                     // If a number is out of place, the puzzle is not solved
                     return false;
@@ -490,34 +501,33 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         scanner.close();
     }
 
-
     @Override
     protected void displayGrid() {
         StringBuilder sb = new StringBuilder();
-        
+
         // Print the top border
-        sb.append("+");
+        sb.append(topLeftCorner);
         for (int j = 0; j < cols; j++) {
-            sb.append("--+");
+            sb.append(horizontalBorder);
         }
         sb.append("\n");
 
         // Print each row of the grid
         for (int i = 0; i < rows; i++) {
-            sb.append("|");
+            sb.append(verticalBorder);
             for (int j = 0; j < cols; j++) {
                 if (grid[i][j] == 0) {
-                    sb.append(EMPTY_CELL).append("|");
+                    sb.append(emptyCell).append(verticalBorder);
                 } else {
-                    sb.append(String.format("%2d", grid[i][j])).append("|");
+                    sb.append(String.format("%3d", grid[i][j])).append(verticalBorder);
                 }
             }
 
             // Print the row separator
-            sb.append("\n+");
-            
+            sb.append("\n" + topLeftCorner);
+
             for (int j = 0; j < cols; j++) {
-                sb.append("--+");
+                sb.append(horizontalBorder);
             }
             sb.append("\n");
         }
