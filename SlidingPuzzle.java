@@ -75,7 +75,7 @@ abstract class GridGame<T> {
     /**
      * The main public method to start and run the game.
      */
-    private void play() {
+    protected void play() {
         setSize();
         setDifficultyLevel();
         initializeGame();
@@ -509,6 +509,6 @@ public class SlidingPuzzle {
     // Main method to start the game
     public static void main(String[] args) {
         SlidingPuzzleGame game = new SlidingPuzzleGame();
-        game.play();
+        game.startGame();
     }
 }
