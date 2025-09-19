@@ -290,34 +290,21 @@ public class SlidingPuzzle extends GridGame<Integer> {
 
     @Override
     protected void initializeGame() {
-        // generate a random number between 1 and rows*cols
-        Random random = new Random();
-        int randomIndex = random.nextInt(rows * cols) + 1;
-
-        // Create a list of numbers from 1 to rows*cols
+        // Create a list of numbers from 0 to rows*cols-1
         List<Integer> numbers = new ArrayList<>();
-        for (int i = 1; i <= rows * cols; i++) {
-            if (i != randomIndex) {
-                numbers.add(i);
-            } else {
-                // Leave one space for the empty cell
-                // Using 0 to represent the empty cell
-                numbers.add(0);
-            }
+        for (int i = 0; i < rows * cols; i++) {
+            numbers.add(i);
         }
 
-        // Fill the grid with the numbers in the right order
+        // Fill the grid in a solved state with the empty cell at the bottom-right corner
+        Iterator<Integer> iterator = numbers.iterator();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                grid[i][j] = numbers.get(i * cols + j);
-
-                // Track the position of the empty cell
-                if (grid[i][j] == 0) {
-                    emptyRow = i;
-                    emptyCol = j;
-                }
+                grid[i][j] = iterator.next();
             }
         }
+        emptyRow = rows - 1;
+        emptyCol = cols - 1;
 
         // Shuffle the grid by making valid moves from the solved state
         // This ensures the puzzle is always solvable
@@ -330,6 +317,9 @@ public class SlidingPuzzle extends GridGame<Integer> {
 
             // Choose a random move from the possible moves
             if (!possibleMoves.isEmpty()) {
+                Random random = new Random();
+
+                // Making a random move out of the possible moves
                 int[] move = possibleMoves.get(random.nextInt(possibleMoves.size()));
                 makeMove(move[0], move[1]);
             }
