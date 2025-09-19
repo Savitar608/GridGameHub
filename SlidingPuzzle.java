@@ -415,9 +415,13 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         // Check if the numbers are in ascending order
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
+                // Skip the empty cell
+                if (i == rows - 1 && j == cols - 1) {
+                    continue;
+                }
+                
                 if (grid[i][j] != i * cols + j + 1) {
                     // If a number is out of place, the puzzle is not solved
-                    System.out.println(i + ", " + j + "are not in place");
                     return false;
                 }
             }
