@@ -1,4 +1,5 @@
 import java.util.*;
+import java.lang.StringBuilder;
 
 /**
  * An abstract base class for grid-based terminal games.
@@ -9,6 +10,8 @@ import java.util.*;
  * @param <T> The type of elements stored in the grid.
  */
 abstract class GridGame<T> {
+    protected int rows;
+    protected int cols;
     protected T[][] grid;
     protected boolean isGameOver;
     protected Scanner scanner;
@@ -43,6 +46,8 @@ abstract class GridGame<T> {
         T[][] tempGrid = (T[][]) java.lang.reflect.Array.newInstance(clazz, rows, cols);
 
         // Initialize the grid and game state
+        this.rows = rows;
+        this.cols = cols;
         this.grid = tempGrid;
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
@@ -63,10 +68,9 @@ abstract class GridGame<T> {
         while (!isGameOver) {
             displayGrid();
             processUserInput();
-            if (!isValidMove()) {
-                displayInvalidInputMessage();
-                continue; // Skip to the next iteration if the move is invalid
-            }
+
+            // Check for win condition after each move
+            // If the game is won, set isGameOver to true and break the loop
             isGameOver = checkWinCondition();
         }
 
@@ -161,14 +165,7 @@ abstract class GridGame<T> {
      * @param col The column index of the move.
      */
     protected abstract void makeMove(int row, int col);
-
-    /**
-     * Checks if the player move is valid.
-     *
-     * @return true if the move is valid, false otherwise.
-     */
-    protected abstract boolean isValidMove();
-
+    
     /**
      * Prints a message indicating that the player's input was invalid.
      */
@@ -231,13 +228,16 @@ public class SlidingPuzzle extends GridGame<Integer> {
      */
     private List<int[]> getPossibleMoves() {
         List<int[]> moves = new ArrayList<>();
-        int size = grid.length;
 
         // Check all four possible directions (up, down, left, right)
-        if (emptyRow > 0) moves.add(new int[]{emptyRow - 1, emptyCol}); // Up
-        if (emptyRow < size - 1) moves.add(new int[]{emptyRow + 1, emptyCol}); // Down
-        if (emptyCol > 0) moves.add(new int[]{emptyRow, emptyCol - 1}); // Left
-        if (emptyCol < size - 1) moves.add(new int[]{emptyRow, emptyCol + 1}); // Right
+        if (emptyRow > 0)
+            moves.add(new int[] { emptyRow - 1, emptyCol }); // Up
+        if (emptyRow < rows - 1)
+            moves.add(new int[] { emptyRow + 1, emptyCol }); // Down
+        if (emptyCol > 0)
+            moves.add(new int[] { emptyRow, emptyCol - 1 }); // Left
+        if (emptyCol < cols - 1)
+            moves.add(new int[] { emptyRow, emptyCol + 1 }); // Right
 
         return moves;
     }
@@ -290,15 +290,13 @@ public class SlidingPuzzle extends GridGame<Integer> {
 
     @Override
     protected void initializeGame() {
-        int size = grid.length;
-
-        // generate a random number between 1 and size*size
+        // generate a random number between 1 and rows*cols
         Random random = new Random();
-        int randomIndex = random.nextInt(size * size) + 1;
+        int randomIndex = random.nextInt(rows * cols) + 1;
 
-        // Create a list of numbers from 1 to size*size
+        // Create a list of numbers from 1 to rows*cols
         List<Integer> numbers = new ArrayList<>();
-        for (int i = 1; i <= size * size; i++) {
+        for (int i = 1; i <= rows * cols; i++) {
             if (i != randomIndex) {
                 numbers.add(i);
             } else {
@@ -309,10 +307,11 @@ public class SlidingPuzzle extends GridGame<Integer> {
         }
 
         // Fill the grid with the numbers in the right order
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                grid[i][j] = numbers.get(i * size + j);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                grid[i][j] = numbers.get(i * cols + j);
 
+                // Track the position of the empty cell
                 if (grid[i][j] == 0) {
                     emptyRow = i;
                     emptyCol = j;
@@ -322,7 +321,8 @@ public class SlidingPuzzle extends GridGame<Integer> {
 
         // Shuffle the grid by making valid moves from the solved state
         // This ensures the puzzle is always solvable
-        // Number of random moves to shuffle the puzzle will depend on the difficulty level
+        // Number of random moves to shuffle the puzzle will depend on the difficulty
+        // level
         // Easy: 10 moves, Medium: 100 moves, Hard: 500 moves
         int shuffleMoves = getShuffleMoves();
         for (int i = 0; i < shuffleMoves; i++) {
@@ -333,6 +333,41 @@ public class SlidingPuzzle extends GridGame<Integer> {
                 int[] move = possibleMoves.get(random.nextInt(possibleMoves.size()));
                 makeMove(move[0], move[1]);
             }
+        }
+    }
+
+    @Override
+    protected void processUserInput() {
+        System.out.println(getPlayerInfo() + ", which tile do you want to slide to the empty space? ");
+        String input = scanner.nextLine();
+        try {
+            int move_tile = Integer.parseInt(input);
+            if (move_tile < 1 || move_tile > rows * cols - 1) {
+                System.out.println("Invalid tile number. Please enter a number between 1 and " + (rows * cols - 1));
+                return;
+            }
+
+            // Find the position of the tile
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    if (grid[i][j] == move_tile) {
+                        // Check if the tile is adjacent to the empty cell
+                        if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) || // Up or Down
+                        (Math.abs(emptyCol - j) == 1 && emptyRow == i)) { // Left or Right
+                            makeMove(i, j);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Handling invalid move (not adjacent)
+            System.out.println("Invalid move. The tile must be adjacent to the empty space.");
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a valid tile number.");
+            scanner.nextLine(); // Clear the invalid input
+            displayGrid();
+            processUserInput();
         }
     }
 }
