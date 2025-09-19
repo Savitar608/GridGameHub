@@ -155,6 +155,14 @@ abstract class GridGame<T> {
     protected abstract void processUserInput();
 
     /**
+     * Executes the player's move on the grid.
+     *
+     * @param row The row index of the move.
+     * @param col The column index of the move.
+     */
+    protected abstract void makeMove(int row, int col);
+
+    /**
      * Checks if the player move is valid.
      *
      * @return true if the move is valid, false otherwise.
@@ -214,6 +222,24 @@ public class SlidingPuzzle extends GridGame<Integer> {
             default:
                 return 10; // Default to Easy if something goes wrong
         }
+    }
+
+    /**
+     * Returns a list of possible moves (row, col) for the empty cell.
+     *
+     * @return A list of possible moves.
+     */
+    private List<int[]> getPossibleMoves() {
+        List<int[]> moves = new ArrayList<>();
+        int size = grid.length;
+
+        // Check all four possible directions (up, down, left, right)
+        if (emptyRow > 0) moves.add(new int[]{emptyRow - 1, emptyCol}); // Up
+        if (emptyRow < size - 1) moves.add(new int[]{emptyRow + 1, emptyCol}); // Down
+        if (emptyCol > 0) moves.add(new int[]{emptyRow, emptyCol - 1}); // Left
+        if (emptyCol < size - 1) moves.add(new int[]{emptyRow, emptyCol + 1}); // Right
+
+        return moves;
     }
 
     /**
@@ -280,6 +306,21 @@ public class SlidingPuzzle extends GridGame<Integer> {
                     emptyRow = i;
                     emptyCol = j;
                 }
+            }
+        }
+
+        // Shuffle the grid by making valid moves from the solved state
+        // This ensures the puzzle is always solvable
+        // Number of random moves to shuffle the puzzle will depend on the difficulty level
+        // Easy: 10 moves, Medium: 100 moves, Hard: 500 moves
+        int shuffleMoves = getShuffleMoves();
+        for (int i = 0; i < shuffleMoves; i++) {
+            List<int[]> possibleMoves = getPossibleMoves();
+
+            // Choose a random move from the possible moves
+            if (!possibleMoves.isEmpty()) {
+                int[] move = possibleMoves.get(random.nextInt(possibleMoves.size()));
+                makeMove(move[0], move[1]);
             }
         }
     }
