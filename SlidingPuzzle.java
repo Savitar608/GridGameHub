@@ -195,6 +195,24 @@ public class SlidingPuzzle extends GridGame<Integer> {
     }
 
     /**
+     * Determines the number of shuffle moves based on the difficulty level.
+     *
+     * @return The number of shuffle moves.
+     */
+    protected int getShuffleMoves() {
+        switch (difficultyLevel) {
+            case 1: // Easy
+                return 10;
+            case 2: // Medium
+                return 100;
+            case 3: // Hard
+                return 500;
+            default:
+                return 10; // Default to Easy if something goes wrong
+        }
+    }
+
+    /**
      * Constructor to initialize the sliding puzzle game.
      *
      * @param row The number of rows in the grid.
@@ -243,8 +261,8 @@ public class SlidingPuzzle extends GridGame<Integer> {
             if (i != randomIndex) {
                 numbers.add(i);
             } else {
-            // Leave one space for the empty cell
-            // Using 0 to represent the empty cell
+                // Leave one space for the empty cell
+                // Using 0 to represent the empty cell
                 numbers.add(0);
             }
         }
