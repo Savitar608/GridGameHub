@@ -127,41 +127,8 @@ abstract class GridGame<T> {
     /**
      * Sets the size of the grid.
      */
-    protected void setSize() {
-        System.out.print("Enter grid size (rows cols): ");
-        String sizeInput = scanner.nextLine();
-        String[] parts = sizeInput.trim().split("\\s+");
+    protected abstract void setSize();
 
-        if (parts.length == 2) {
-            try {
-                int rows = Integer.parseInt(parts[0]);
-                int cols = Integer.parseInt(parts[1]);
-
-                // if the size is the default size, skip reinitialization
-                if (rows == this.rows && cols == this.cols) {
-                    return;
-                }
-                
-                // Set the new size
-                this.rows = rows;
-                this.cols = cols;
-
-                // Reinitialize the grid with the new size using proper generic array creation
-                @SuppressWarnings("unchecked")
-                T[][] tempGrid = (T[][]) Array.newInstance(Integer.class, rows, 0);
-                for (int i = 0; i < rows; i++) {
-                    tempGrid[i] = (T[]) Array.newInstance(Integer.class, cols);
-                }
-                this.grid = tempGrid;
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Using default size.");
-            }
-        } else {
-            System.out.println("Invalid input. Using default size.");
-        }
-        // Validate the size
-        validateSize();
-    }
     /**
      * Sets the difficulty level of the game.
      *
@@ -256,6 +223,40 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         if (rows < MIN_SIZE || cols < MIN_SIZE) {
             throw new IllegalArgumentException("Grid size must be at least " + MIN_SIZE + "x" + MIN_SIZE);
         }
+    }
+
+    /**
+     * Sets the size of the grid based on user input.
+     */
+    protected void setSize() {
+        System.out.print("Enter grid size (rows cols): ");
+        String sizeInput = scanner.nextLine();
+        String[] parts = sizeInput.trim().split("\\s+");
+
+        if (parts.length == 2) {
+            try {
+                int rows = Integer.parseInt(parts[0]);
+                int cols = Integer.parseInt(parts[1]);
+
+                // if the size is the default size, skip reinitialization
+                if (rows == this.rows && cols == this.cols) {
+                    return;
+                }
+                
+                // Set the new size
+                this.rows = rows;
+                this.cols = cols;
+
+                // Reinitialize the grid with the new size using Integer array directly
+                this.grid = new Integer[rows][cols];
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Using default size.");
+            }
+        } else {
+            System.out.println("Invalid input. Using default size.");
+        }
+        // Validate the size
+        validateSize();
     }
 
     /**
