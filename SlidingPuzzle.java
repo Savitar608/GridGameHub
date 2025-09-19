@@ -20,8 +20,13 @@ abstract class GridGame<T> {
      * @param rows The number of rows in the grid.
      * @param cols The number of columns in the grid.
      */
-    public GridGame(int rows, int cols) {
-        this.grid = (T[][]) new Object[rows][cols];
+    public GridGame(Class<T> clazz, int rows, int cols) {
+        @SuppressWarnings("unchecked")
+        // Java does not allow the direct creation of generic arrays apparently
+        T[][] tempGrid = (T[][]) java.lang.reflect.Array.newInstance(clazz, rows, cols);
+
+        // Initialize the grid and game state
+        this.grid = tempGrid;
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
     }
@@ -94,10 +99,8 @@ abstract class GridGame<T> {
 
 
 public class SlidingPuzzle extends GridGame<Integer> {
-    private int emptyRow, emptyCol;
-
     public SlidingPuzzle(int size) {
-        super(size, size);
+        super(Integer.class, size, size);
     }
 
     @Override
