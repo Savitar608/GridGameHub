@@ -277,16 +277,25 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      * @return The number of shuffle moves.
      */
     protected int getShuffleMoves() {
+        int baseMultiplier; // Base multiplier for shuffle moves
         switch (difficultyLevel) {
             case 1: // Easy
-                return 300;
+                baseMultiplier = 3;
+                break;
             case 2: // Medium
-                return 1000;
+                baseMultiplier = 10;
+                break;
             case 3: // Hard
-                return 5000;
+                baseMultiplier = 25;
+                break;
             default:
-                return 300; // Default to Easy if something goes wrong
+                baseMultiplier = 3; // Default to Easy if something goes wrong
+                break;
         }
+
+        double exponent = 1.5; // Exponent to scale with grid size
+        double gridSize = rows * cols;
+        return (int) (baseMultiplier * Math.pow(gridSize, exponent));
     }
 
     /**
