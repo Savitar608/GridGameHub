@@ -384,4 +384,14 @@ public class SlidingPuzzle extends GridGame<Integer> {
         displayGrid(); // Re-display the grid
         processUserInput(); // Prompt for input again
     }
+
+    @Override
+    protected void displayWinMessage() {
+        // clear the console (works in most terminals)
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+        System.out.println("Congratulations " + getPlayerInfo() + "! You've solved the puzzle! 🎉");
+        displayGrid();
+        System.out.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
+    }
 }
