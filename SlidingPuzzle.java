@@ -135,7 +135,7 @@ abstract class GridGame<T> {
      * @param level The difficulty level (1 to 3).
      */
     protected void setDifficultyLevel() {
-        System.out.println("Choose difficulty level: 1 (Easy), 2 (Medium), 3 (Hard)");
+        System.out.println("Hey " + getPlayerInfo() + ", choose your difficulty level: 1 (Easy), 2 (Medium), 3 (Hard)");
         String chosenLevel = scanner.nextLine();
 
         try {
@@ -156,6 +156,11 @@ abstract class GridGame<T> {
         }
 
         System.out.println("Difficulty set to: " + difficultyLevels.get(difficultyLevel));
+
+        if (this.difficultyLevel == 3) {
+            System.out.println("Warning: Hard mode can be quite challenging!");
+            System.out.println("Tip: Plan your moves ahead and try to visualize the solution.");
+        }
     }
 
     /**
