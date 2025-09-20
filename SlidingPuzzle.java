@@ -212,7 +212,7 @@ abstract class GridGame<T> {
 
 class SlidingPuzzleGame extends GridGame<Integer> {
     // Constraints on grid size
-    public static final int MIN_SIZE = 2;
+    public static final int MIN_SIZE = 3; // Minimum size allowed
     public static final int MAX_SIZE = 20; // Maximum size allowed
 
     // Position of the empty cell
