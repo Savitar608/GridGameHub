@@ -211,7 +211,9 @@ abstract class GridGame<T> {
 }
 
 class SlidingPuzzleGame extends GridGame<Integer> {
+    // Constraints on grid size
     public static final int MIN_SIZE = 2;
+    public static final int MAX_SIZE = 20; // Maximum size allowed
 
     // Position of the empty cell
     private int emptyRow;
@@ -220,10 +222,6 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     // Default values
     private static final int DEFAULT_ROWS = 3; // Default rows
     private static final int DEFAULT_COLS = 3; // Default columns
-
-    // Constraints on grid size
-    public static final int MAX_ROWS = 20; // Maximum rows allowed
-    public static final int MAX_COLS = 20; // Maximum columns allowed
 
     // Border characters and empty cell representation
     private String emptyCell = "  ";
@@ -245,7 +243,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      * Sets the size of the grid based on user input.
      */
     protected void setSize() {
-        System.out.print("Enter grid size (rows x cols) (Max " + MAX_ROWS + " x " + MAX_COLS + "): ");
+        System.out.print("Enter grid size (rows x cols) (Min " + MIN_SIZE + ", Max " + MAX_SIZE + "): ");
         String sizeInput = scanner.nextLine();
         String[] parts = sizeInput.trim().split("\\s*x\\s*");
 
@@ -260,9 +258,8 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                 }
 
                 // Validate the size against max constraints
-                if (rows < MIN_SIZE || cols < MIN_SIZE || rows > MAX_ROWS || cols > MAX_COLS) {
-                    System.out
-                            .println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+                if (rows < MIN_SIZE || cols < MIN_SIZE || rows > MAX_SIZE || cols > MAX_SIZE) {
+                    System.out.println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
                     rows = DEFAULT_ROWS;
                     cols = DEFAULT_COLS;
                 }
