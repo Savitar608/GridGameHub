@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public final class SlidingPuzzleGame extends GridGame<Integer> {
+public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     public static final int MIN_SIZE = 3;
     public static final int MAX_SIZE = 20;
 
@@ -43,13 +43,13 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
     private String topLeftCorner = "+";
     private String horizontalBorder = "--+";
     private String verticalBorder = "|";
-    private String cellFormat = "%2d";
+    private String cellFormat = "%2s";
 
     /**
      * Creates a sliding puzzle game using the default console input/output services.
      */
     public SlidingPuzzleGame() {
-        super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS);
+        super(SlidingPuzzlePiece.class, DEFAULT_ROWS, DEFAULT_COLS);
         addDifficultyLevel(4, "Expert");
         addDifficultyLevel(5, "Master");
         addDifficultyLevel(6, "Legendary");
@@ -63,7 +63,7 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
      * @param outputService service used for writing game output
      */
     public SlidingPuzzleGame(InputService inputService, OutputService outputService) {
-        super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS, inputService, outputService);
+        super(SlidingPuzzlePiece.class, DEFAULT_ROWS, DEFAULT_COLS, inputService, outputService);
         addDifficultyLevel(4, "Expert");
         addDifficultyLevel(5, "Master");
         addDifficultyLevel(6, "Legendary");
@@ -109,11 +109,11 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
                 if (getGridSize() < 100) {
                     horizontalBorder = "--+";
                     emptyCell = "  ";
-                    cellFormat = "%2d";
+                    cellFormat = "%2s";
                 } else {
                     horizontalBorder = "---+";
                     emptyCell = "   ";
-                    cellFormat = "%3d";
+                    cellFormat = "%3s";
                 }
             } catch (NumberFormatException e) {
                 outputService.println(
@@ -127,8 +127,8 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
     }
 
     protected int getShuffleMoves() {
-        int baseMultiplier;
-        int diffLevel = player.getDifficultyLevel();
+    int baseMultiplier;
+    int diffLevel = getPlayer().getDifficultyLevel();
 
         if (diffLevel <= 3) {
             switch (diffLevel) {
@@ -165,7 +165,7 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
             elapsedTimeSeconds = 1;
         }
 
-        int baseScore = player.getDifficultyLevel() * getGridSize() * 100;
+    int baseScore = getPlayer().getDifficultyLevel() * getGridSize() * 100;
         double moveEfficiency = Math.max(0.1, 1.0 / moveCount);
         double timeEfficiency = Math.max(0.1, 1.0 / elapsedTimeSeconds);
 
@@ -217,10 +217,13 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void makeMove(int row, int col) {
-        Integer tileValue = gameGrid.get(row, col);
+        SlidingPuzzlePiece tilePiece = gameGrid.get(row, col);
+        if (tilePiece == null || tilePiece.isEmpty()) {
+            return;
+        }
 
-        gameGrid.set(emptyRow, emptyCol, tileValue);
-        gameGrid.set(row, col, 0);
+        gameGrid.set(emptyRow, emptyCol, tilePiece);
+        gameGrid.set(row, col, SlidingPuzzlePiece.empty());
 
         emptyRow = row;
         emptyCol = col;
@@ -231,13 +234,13 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void initializeGame() {
-        List<Integer> numbers = new ArrayList<>();
+        List<SlidingPuzzlePiece> pieces = new ArrayList<>(getGridSize());
         for (int i = 1; i < getGridSize(); i++) {
-            numbers.add(i);
+            pieces.add(SlidingPuzzlePiece.ofValue(i));
         }
-        numbers.add(0);
+        pieces.add(SlidingPuzzlePiece.empty());
 
-        gameGrid.fillFromList(numbers);
+        gameGrid.fillFromList(pieces);
         emptyRow = getRows() - 1;
         emptyCol = getCols() - 1;
 
@@ -278,7 +281,8 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
             for (int i = 0; i < getRows(); i++) {
                 for (int j = 0; j < getCols(); j++) {
-                    if (gameGrid.get(i, j).equals(moveTile)) {
+                    SlidingPuzzlePiece candidate = gameGrid.get(i, j);
+                    if (candidate != null && candidate.hasValue(moveTile)) {
                         if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) ||
                                 (Math.abs(emptyCol - j) == 1 && emptyRow == i)) {
                             makeMove(i, j);
@@ -296,7 +300,8 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected boolean checkWinCondition() {
-        if (!gameGrid.get(getRows() - 1, getCols() - 1).equals(0)) {
+        SlidingPuzzlePiece bottomRight = gameGrid.get(getRows() - 1, getCols() - 1);
+        if (bottomRight == null || !bottomRight.isEmpty()) {
             return false;
         }
 
@@ -306,7 +311,8 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
                     continue;
                 }
 
-                if (!gameGrid.get(i, j).equals(i * getCols() + j + 1)) {
+                SlidingPuzzlePiece expected = gameGrid.get(i, j);
+                if (expected == null || !expected.hasValue(i * getCols() + j + 1)) {
                     return false;
                 }
             }
@@ -339,13 +345,16 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
         outputService.println("Final Score: " + finalScore);
         outputService.println("Total Moves: " + moveCount);
         outputService.println("Total Time: " + totalTime + " seconds");
-        outputService.println("Difficulty: "
-                + (player.getDifficultyLevel() == 1 ? "Easy"
-                        : player.getDifficultyLevel() == 2 ? "Medium" : "Hard"));
+        Player currentPlayer = getPlayer();
+        String difficultyLabel = getDifficultyName(currentPlayer.getDifficultyLevel());
+        if (difficultyLabel == null) {
+            difficultyLabel = "Unknown";
+        }
+        outputService.println("Difficulty: " + difficultyLabel);
         outputService.println("Grid Size: " + getRows() + "x" + getCols());
 
-        int previousTopScore = player.getTopScore(getRows(), getCols());
-        boolean newRecord = player.updateTopScore(finalScore, getRows(), getCols());
+        int previousTopScore = currentPlayer.getTopScore(getRows(), getCols());
+        boolean newRecord = currentPlayer.updateTopScore(finalScore, getRows(), getCols());
         if (newRecord) {
             outputService.println("");
             outputService.println("🏆 NEW PERSONAL RECORD! 🏆");
@@ -357,7 +366,7 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
             }
         }
 
-        Map<Integer, Map<String, Integer>> allScores = player.getAllTopScores();
+        Map<Integer, Map<String, Integer>> allScores = currentPlayer.getAllTopScores();
         outputService.println("");
         outputService.println("=== YOUR TOP SCORES ===");
         if (allScores.isEmpty()) {
@@ -405,11 +414,11 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
         for (int i = 0; i < getRows(); i++) {
             sb.append(verticalBorder);
             for (int j = 0; j < getCols(); j++) {
-                Integer cellValue = gameGrid.get(i, j);
-                if (cellValue.equals(0)) {
+                SlidingPuzzlePiece piece = gameGrid.get(i, j);
+                if (piece == null || piece.isEmpty()) {
                     sb.append(emptyCell).append(verticalBorder);
                 } else {
-                    sb.append(String.format(cellFormat, cellValue)).append(verticalBorder);
+                    sb.append(String.format(cellFormat, piece.getDisplayToken())).append(verticalBorder);
                 }
             }
 
@@ -424,7 +433,7 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
         if (moveCount > 0) {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-            String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
+        String currentDifficulty = getDifficultyName(getPlayer().getDifficultyLevel());
             outputService.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
                     + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
             outputService.println(getPlayer().getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
