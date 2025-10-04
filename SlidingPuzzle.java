@@ -98,28 +98,6 @@ abstract class GridGame<T> {
     }
 
     /**
-     * Gets an element from the grid.
-     * 
-     * @param row The row index
-     * @param col The column index
-     * @return The element at the specified position
-     */
-    protected T getGridElement(int row, int col) {
-        return gameGrid.get(row, col);
-    }
-
-    /**
-     * Sets an element in the grid.
-     * 
-     * @param row   The row index
-     * @param col   The column index
-     * @param value The value to set
-     */
-    protected void setGridElement(int row, int col, T value) {
-        gameGrid.set(row, col, value);
-    }
-
-    /**
      * Initializes the default difficulty levels. Can be overridden by subclasses.
      */
     protected void initializeDefaultDifficultyLevels() {
@@ -568,10 +546,10 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     @Override
     protected void makeMove(int row, int col) {
         // Swap the empty cell with the selected cell using Grid methods
-        Integer tileValue = getGridElement(row, col);
+    Integer tileValue = gameGrid.get(row, col);
 
-        setGridElement(emptyRow, emptyCol, tileValue);
-        setGridElement(row, col, 0); // 0 represents the empty cell
+    gameGrid.set(emptyRow, emptyCol, tileValue);
+    gameGrid.set(row, col, 0); // 0 represents the empty cell
 
         // Update the position of the empty cell
         emptyRow = row;
@@ -637,7 +615,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             // Find the position of the tile
             for (int i = 0; i < getRows(); i++) {
                 for (int j = 0; j < getCols(); j++) {
-                    if (getGridElement(i, j).equals(move_tile)) {
+                    if (gameGrid.get(i, j).equals(move_tile)) {
                         // Check if the tile is adjacent to the empty cell
                         if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) || // Up or Down
                                 (Math.abs(emptyCol - j) == 1 && emptyRow == i)) { // Left or Right
@@ -658,7 +636,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     @Override
     protected boolean checkWinCondition() {
         // if the empty cell is not in the bottom-right corner, return false immediately
-        if (!getGridElement(getRows() - 1, getCols() - 1).equals(0)) {
+    if (!gameGrid.get(getRows() - 1, getCols() - 1).equals(0)) {
             return false;
         }
 
@@ -670,7 +648,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                     continue;
                 }
 
-                if (!getGridElement(i, j).equals(i * getCols() + j + 1)) {
+                if (!gameGrid.get(i, j).equals(i * getCols() + j + 1)) {
                     // If a number is out of place, the puzzle is not solved
                     return false;
                 }
@@ -773,7 +751,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         for (int i = 0; i < getRows(); i++) {
             sb.append(verticalBorder);
             for (int j = 0; j < getCols(); j++) {
-                Integer cellValue = getGridElement(i, j);
+                Integer cellValue = gameGrid.get(i, j);
                 if (cellValue.equals(0)) {
                     sb.append(emptyCell).append(verticalBorder);
                 } else {
