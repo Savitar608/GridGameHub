@@ -24,7 +24,6 @@
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Scanner;
 
 /**
  * Coordinates the execution of a {@link GridGame} by running the game loop and
@@ -40,18 +39,19 @@ public class GameController {
     public void run(GridGame<?> game) {
         Objects.requireNonNull(game, "game must not be null");
 
-        Scanner scanner = game.getInputScanner();
+        InputService inputService = game.getInputService();
+        OutputService outputService = game.getOutputService();
 
         game.resetGameState();
         game.displayWelcomeMessage();
-    configurePlayer(game);
+        configurePlayer(game, inputService, outputService);
 
         boolean keepPlaying = true;
         while (keepPlaying) {
             game.resetGameState();
 
             game.setSize();
-            configureDifficulty(game);
+            configureDifficulty(game, inputService, outputService);
             game.initializeGame();
 
             while (!game.isGameOver()) {
@@ -70,27 +70,25 @@ public class GameController {
             game.displayGrid();
             game.displayWinMessage();
 
-            keepPlaying = promptPlayAgain(scanner);
+            keepPlaying = promptPlayAgain(inputService, outputService);
         }
 
-        System.out.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
-        scanner.close();
+        outputService.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
+        inputService.close();
     }
 
-    private void configurePlayer(GridGame<?> game) {
+    private void configurePlayer(GridGame<?> game, InputService inputService, OutputService outputService) {
         Player player = game.getPlayer();
-        Scanner scanner = game.getInputScanner();
-        player.promptForName(scanner);
+        player.promptForName(inputService, outputService);
     }
 
-    private void configureDifficulty(GridGame<?> game) {
+    private void configureDifficulty(GridGame<?> game, InputService inputService, OutputService outputService) {
         DifficultyManager difficultyManager = game.getDifficultyManager();
         List<Integer> levels = difficultyManager.getSortedDifficultyLevels();
         if (levels.isEmpty()) {
             throw new IllegalStateException("No difficulty levels configured.");
         }
 
-        Scanner scanner = game.getInputScanner();
         Player player = game.getPlayer();
 
         StringBuilder optionsBuilder = new StringBuilder();
@@ -104,53 +102,53 @@ public class GameController {
             }
         }
 
-        System.out.println("Hey " + player.getName() + ", choose your difficulty level: " + optionsBuilder);
-        System.out.println("Note: The difficulty level increases exponentially with grid size");
-        String chosenLevel = scanner.nextLine();
+        outputService.println("Hey " + player.getName() + ", choose your difficulty level: " + optionsBuilder);
+        outputService.println("Note: The difficulty level increases exponentially with grid size");
+        String chosenLevel = inputService.readLine();
 
         int defaultLevel = difficultyManager.getMinDifficultyLevel();
         int level;
         try {
             level = Integer.parseInt(chosenLevel);
         } catch (Exception e) {
-            System.out.println("Invalid input. Defaulting to " + difficultyManager.getDifficultyName(defaultLevel) + ".");
+            outputService.println(
+                    "Invalid input. Defaulting to " + difficultyManager.getDifficultyName(defaultLevel) + ".");
             level = defaultLevel;
         }
 
         player.setDifficultyLevel(level);
 
         if (!difficultyManager.isValidDifficultyLevel(level)) {
-            System.out
-                    .println("Invalid level. Defaulting to " + difficultyManager.getDifficultyName(defaultLevel) + ".");
+            outputService.println(
+                    "Invalid level. Defaulting to " + difficultyManager.getDifficultyName(defaultLevel) + ".");
             player.setDifficultyLevel(defaultLevel);
         }
 
-        System.out.println("Difficulty set to: "
+        outputService.println("Difficulty set to: "
                 + difficultyManager.getDifficultyName(player.getDifficultyLevel()));
 
         int currentTopScore = player.getTopScore(game.getRows(), game.getCols());
         if (currentTopScore > 0) {
-            System.out.println("Your current top score for this difficulty: " + currentTopScore);
+            outputService.println("Your current top score for this difficulty: " + currentTopScore);
         } else {
-            System.out.println("No previous score for this difficulty level.");
+            outputService.println("No previous score for this difficulty level.");
         }
 
-        difficultyManager.displayDifficultyMessage(player.getDifficultyLevel());
+        difficultyManager.displayDifficultyMessage(player.getDifficultyLevel(), outputService);
     }
 
     /**
      * Prompts the user to decide whether to play again.
      *
-     * @param scanner the scanner to read user input
+    * @param inputService  source of user responses
+    * @param outputService destination for prompt messages
      * @return {@code true} if the user wants to play again, {@code false} otherwise
      */
-    private boolean promptPlayAgain(Scanner scanner) {
+    private boolean promptPlayAgain(InputService inputService, OutputService outputService) {
         while (true) {
-            System.out.println("Would you like to play again? (yes/no)");
-            String response;
-            try {
-                response = scanner.nextLine();
-            } catch (Exception ex) {
+            outputService.println("Would you like to play again? (yes/no)");
+            String response = inputService.readLine();
+            if (response == null) {
                 return false;
             }
 
@@ -163,7 +161,7 @@ public class GameController {
                 case "n":
                     return false;
                 default:
-                    System.out.println("Please respond with 'yes' or 'no'.");
+                    outputService.println("Please respond with 'yes' or 'no'.");
             }
         }
     }

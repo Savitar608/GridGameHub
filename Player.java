@@ -83,21 +83,23 @@ public class Player {
     }
 
     /**
-     * Prompts the player for a name using the provided scanner, applying default
+     * Prompts the player for a name using the provided services, applying default
      * handling when necessary.
-     * 
-     * @param scanner input source for the player's response
+     *
+     * @param inputService  input source for the player's response
+     * @param outputService destination for prompt and feedback messages
      */
-    public void promptForName(Scanner scanner) {
-        Objects.requireNonNull(scanner, "scanner must not be null");
+    public void promptForName(InputService inputService, OutputService outputService) {
+        Objects.requireNonNull(inputService, "inputService must not be null");
+        Objects.requireNonNull(outputService, "outputService must not be null");
 
-        System.out.print("Enter player name: ");
-        String playerName = scanner.nextLine();
+        outputService.print("Enter player name: ");
+        String playerName = inputService.readLine();
 
         if (playerName != null && !playerName.trim().isEmpty()) {
             setName(playerName.trim());
         } else {
-            System.out.println("Warning: Invalid name provided. Setting default name.");
+            outputService.println("Warning: Invalid name provided. Setting default name.");
             setName(DEFAULT_PLAYER_NAME);
         }
     }

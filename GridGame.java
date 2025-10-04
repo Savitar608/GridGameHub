@@ -20,7 +20,7 @@
  * @assignment Assignment 1
  */
 
-import java.util.Scanner;
+import java.util.Objects;
 
 /**
  * An abstract base class for grid-based terminal games.
@@ -30,9 +30,10 @@ import java.util.Scanner;
 public abstract class GridGame<T> {
     protected Grid<T> gameGrid;
     protected boolean isGameOver;
-    protected Scanner scanner;
     protected Player player;
     protected final DifficultyManager difficultyManager;
+    private final InputService inputService;
+    private final OutputService outputService;
     private final GameController gameController;
 
     /**
@@ -43,11 +44,18 @@ public abstract class GridGame<T> {
      * @param cols          The number of columns in the grid.
      */
     public GridGame(Class<T> componentType, int rows, int cols) {
+        this(componentType, rows, cols, new ConsoleInputService(), new ConsoleOutputService());
+    }
+
+    protected GridGame(Class<T> componentType, int rows, int cols,
+            InputService inputService,
+            OutputService outputService) {
         this.gameGrid = new Grid<>(componentType, rows, cols);
         this.isGameOver = false;
-        this.scanner = new Scanner(System.in);
         this.player = new Player();
         this.difficultyManager = new DifficultyManager();
+        this.inputService = Objects.requireNonNull(inputService, "inputService must not be null");
+        this.outputService = Objects.requireNonNull(outputService, "outputService must not be null");
 
         initializeDefaultDifficultyLevels();
         this.gameController = new GameController();
@@ -106,8 +114,12 @@ public abstract class GridGame<T> {
         return isGameOver;
     }
 
-    protected Scanner getInputScanner() {
-        return scanner;
+    public InputService getInputService() {
+        return inputService;
+    }
+
+    public OutputService getOutputService() {
+        return outputService;
     }
 
     public Player getPlayer() {

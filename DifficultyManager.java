@@ -119,19 +119,21 @@ public class DifficultyManager {
      * 
      * @param difficultyLevel the level for which to display the message
      */
-    public void displayDifficultyMessage(int difficultyLevel) {
+    public void displayDifficultyMessage(int difficultyLevel, OutputService outputService) {
+        Objects.requireNonNull(outputService, "outputService must not be null");
+
         String difficultyName = getDifficultyName(difficultyLevel);
 
         if (difficultyLevel >= 4) {
-            System.out.println("🔥 EXTREME DIFFICULTY ACTIVATED! 🔥");
-            System.out.println("Warning: " + difficultyName + " mode is for seasoned puzzle masters!");
-            System.out.println(
+            outputService.println("🔥 EXTREME DIFFICULTY ACTIVATED! 🔥");
+            outputService.println("Warning: " + difficultyName + " mode is for seasoned puzzle masters!");
+            outputService.println(
                     "Tip: Take your time and think several moves ahead. Consider using pen and paper to track your strategy.");
         } else if (difficultyLevel == 3) {
-            System.out.println("Warning: " + difficultyName + " mode can be quite challenging!");
-            System.out.println("Tip: Plan your moves ahead and try to visualize the solution.");
+            outputService.println("Warning: " + difficultyName + " mode can be quite challenging!");
+            outputService.println("Tip: Plan your moves ahead and try to visualize the solution.");
         } else if (difficultyLevel == 1) {
-            System.out.println("Perfect for beginners! Take your time to learn the game mechanics.");
+            outputService.println("Perfect for beginners! Take your time to learn the game mechanics.");
         }
     }
 

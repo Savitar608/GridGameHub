@@ -51,6 +51,13 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
         addDifficultyLevel(5, "Master");
         addDifficultyLevel(6, "Legendary");
     }
+    
+    public SlidingPuzzleGame(InputService inputService, OutputService outputService) {
+        super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS, inputService, outputService);
+        addDifficultyLevel(4, "Expert");
+        addDifficultyLevel(5, "Master");
+        addDifficultyLevel(6, "Legendary");
+    }
 
     @Override
     protected void validateSize() {
@@ -61,8 +68,14 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void setSize() {
-        System.out.print("Enter grid size (rows x cols) (Min " + MIN_SIZE + ", Max " + MAX_SIZE + "): ");
-        String sizeInput = scanner.nextLine();
+        OutputService outputService = getOutputService();
+        InputService inputService = getInputService();
+
+        outputService.print("Enter grid size (rows x cols) (Min " + MIN_SIZE + ", Max " + MAX_SIZE + "): ");
+        String sizeInput = inputService.readLine();
+        if (sizeInput == null) {
+            sizeInput = "";
+        }
         String[] parts = sizeInput.trim().split("\\s*x\\s*");
 
         if (parts.length == 2) {
@@ -75,7 +88,8 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
                 }
 
                 if (rows < MIN_SIZE || cols < MIN_SIZE || rows > MAX_SIZE || cols > MAX_SIZE) {
-                    System.out.println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+                    outputService.println(
+                            "Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
                     rows = DEFAULT_ROWS;
                     cols = DEFAULT_COLS;
                 }
@@ -92,10 +106,12 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
                     cellFormat = "%3d";
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+                outputService.println(
+                        "Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
             }
         } else {
-            System.out.println("Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+            outputService.println(
+                    "Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
         }
         validateSize();
     }
@@ -167,25 +183,26 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void displayWelcomeMessage() {
-        System.out.println("=========================================");
-        System.out.println("    WELCOME TO THE SLIDING PUZZLE GAME!  ");
-        System.out.println("=========================================");
-        System.out.println("\n--- How to Play ---");
-        System.out.println("1. Objective: Arrange the numbers in ascending order, from left to right, top to bottom.");
-        System.out.println("   The empty space should be in the bottom-right corner when solved.");
-        System.out.println("\n   For a 3x3 puzzle, the solved state looks like this:");
-        System.out.println("   +--+--+--+");
-        System.out.println("   | 1| 2| 3|");
-        System.out.println("   +--+--+--+");
-        System.out.println("   | 4| 5| 6|");
-        System.out.println("   +--+--+--+");
-        System.out.println("   | 7| 8|  |");
-        System.out.println("   +--+--+--+");
-        System.out.println("\n2. Your Move: To move a tile, enter the number of the tile you wish to slide");
-        System.out.println("   into the empty space. You can only move tiles that are adjacent");
-        System.out.println("   (up, down, left, or right) to the empty space.");
-        System.out.println("\nGood luck and have fun! 🧩");
-        System.out.println("-----------------------------------------\n");
+        OutputService outputService = getOutputService();
+        outputService.println("=========================================");
+        outputService.println("    WELCOME TO THE SLIDING PUZZLE GAME!  ");
+        outputService.println("=========================================");
+        outputService.println("\n--- How to Play ---");
+        outputService.println("1. Objective: Arrange the numbers in ascending order, from left to right, top to bottom.");
+        outputService.println("   The empty space should be in the bottom-right corner when solved.");
+        outputService.println("\n   For a 3x3 puzzle, the solved state looks like this:");
+        outputService.println("   +--+--+--+");
+        outputService.println("   | 1| 2| 3|");
+        outputService.println("   +--+--+--+");
+        outputService.println("   | 4| 5| 6|");
+        outputService.println("   +--+--+--+");
+        outputService.println("   | 7| 8|  |");
+        outputService.println("   +--+--+--+");
+        outputService.println("\n2. Your Move: To move a tile, enter the number of the tile you wish to slide");
+        outputService.println("   into the empty space. You can only move tiles that are adjacent");
+        outputService.println("   (up, down, left, or right) to the empty space.");
+        outputService.println("\nGood luck and have fun! 🧩");
+        outputService.println("-----------------------------------------\n");
     }
 
     @Override
@@ -232,12 +249,20 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void processUserInput() {
-    System.out.print(getPlayer().getName() + ", which tile do you want to slide to the empty space? ");
-        String input = scanner.nextLine();
+        OutputService outputService = getOutputService();
+        InputService inputService = getInputService();
+
+        outputService.print(getPlayer().getName() + ", which tile do you want to slide to the empty space? ");
+        String input = inputService.readLine();
+        if (input == null) {
+            setGameOver(true);
+            return;
+        }
         try {
             int moveTile = Integer.parseInt(input);
             if (moveTile < 1 || moveTile > getGridSize() - 1) {
-                System.out.println("Invalid tile number. Please enter a number between 1 and " + (getGridSize() - 1));
+                outputService.println(
+                        "Invalid tile number. Please enter a number between 1 and " + (getGridSize() - 1));
                 return;
             }
 
@@ -253,7 +278,7 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
                 }
             }
 
-            System.out.println("Invalid move. The tile must be adjacent to the empty space.");
+            outputService.println("Invalid move. The tile must be adjacent to the empty space.");
         } catch (NumberFormatException e) {
             displayInvalidInputMessage();
         }
@@ -282,7 +307,8 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void displayInvalidInputMessage() {
-        System.out.println("Invalid input. Please try again.");
+        OutputService outputService = getOutputService();
+        outputService.println("Invalid input. Please try again.");
         displayGrid();
         processUserInput();
     }
@@ -290,41 +316,42 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
     @Override
     protected void displayWinMessage() {
         // Clear the console (works in most terminals)
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        OutputService outputService = getOutputService();
+        outputService.print("\033[H\033[2J");
+        outputService.flush();
 
         int finalScore = calculateScore();
         long totalTime = (System.currentTimeMillis() - startTime) / 1000;
 
-    System.out.println("Congratulations " + getPlayer().getName() + "! You've solved the puzzle! 🎉");
-        System.out.println();
-        System.out.println("=== GAME STATISTICS ===");
-        System.out.println("Final Score: " + finalScore);
-        System.out.println("Total Moves: " + moveCount);
-        System.out.println("Total Time: " + totalTime + " seconds");
-        System.out.println("Difficulty: "
+        outputService.println("Congratulations " + getPlayer().getName() + "! You've solved the puzzle! 🎉");
+        outputService.println("");
+        outputService.println("=== GAME STATISTICS ===");
+        outputService.println("Final Score: " + finalScore);
+        outputService.println("Total Moves: " + moveCount);
+        outputService.println("Total Time: " + totalTime + " seconds");
+        outputService.println("Difficulty: "
                 + (player.getDifficultyLevel() == 1 ? "Easy"
                         : player.getDifficultyLevel() == 2 ? "Medium" : "Hard"));
-        System.out.println("Grid Size: " + getRows() + "x" + getCols());
+        outputService.println("Grid Size: " + getRows() + "x" + getCols());
 
         int previousTopScore = player.getTopScore(getRows(), getCols());
         boolean newRecord = player.updateTopScore(finalScore, getRows(), getCols());
         if (newRecord) {
-            System.out.println();
-            System.out.println("🏆 NEW PERSONAL RECORD! 🏆");
+            outputService.println("");
+            outputService.println("🏆 NEW PERSONAL RECORD! 🏆");
             if (previousTopScore > 0) {
-                System.out.println("Previous best: " + previousTopScore + " (improved by "
+                outputService.println("Previous best: " + previousTopScore + " (improved by "
                         + (finalScore - previousTopScore) + ")");
             } else {
-                System.out.println("This is your first completed game at this difficulty!");
+                outputService.println("This is your first completed game at this difficulty!");
             }
         }
 
         Map<Integer, Map<String, Integer>> allScores = player.getAllTopScores();
-        System.out.println();
-        System.out.println("=== YOUR TOP SCORES ===");
+        outputService.println("");
+        outputService.println("=== YOUR TOP SCORES ===");
         if (allScores.isEmpty()) {
-            System.out.println("No scores recorded yet.");
+            outputService.println("No scores recorded yet.");
         } else {
             List<Integer> levels = new ArrayList<>(allScores.keySet());
             Collections.sort(levels);
@@ -334,7 +361,7 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
                     continue;
                 }
 
-                System.out.println(getDifficultyName(level) + " (Level " + level + "):");
+                outputService.println(getDifficultyName(level) + " (Level " + level + "):");
                 List<String> gridSizes = new ArrayList<>(gridScores.keySet());
                 gridSizes.sort((a, b) -> {
                     int areaA = parseGridArea(a);
@@ -346,16 +373,17 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
                 });
 
                 for (String gridSize : gridSizes) {
-                    System.out.println("  " + gridSize + " -> " + gridScores.get(gridSize));
+                    outputService.println("  " + gridSize + " -> " + gridScores.get(gridSize));
                 }
             }
         }
-        System.out.println("=======================");
-        System.out.println();
+        outputService.println("=======================");
+        outputService.println("");
     }
 
     @Override
     protected void displayGrid() {
+        OutputService outputService = getOutputService();
         StringBuilder sb = new StringBuilder();
 
         sb.append(topLeftCorner);
@@ -382,15 +410,15 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
             sb.append("\n");
         }
 
-        System.out.println(sb.toString());
+        outputService.println(sb.toString());
 
         if (moveCount > 0) {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
             String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
-            System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
+            outputService.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
                     + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
-        System.out.println(getPlayer().getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
-            + getCols() + "): " + getPlayer().getTopScore(getRows(), getCols()));
+            outputService.println(getPlayer().getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
+                    + getCols() + "): " + getPlayer().getTopScore(getRows(), getCols()));
         }
     }
 
