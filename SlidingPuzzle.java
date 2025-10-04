@@ -81,6 +81,8 @@ abstract class GridGame<T> {
      */
     protected void initializeDefaultDifficultyLevels() {
         difficultyLevels = new LinkedHashMap<>(); // Preserve insertion order
+
+        // Default difficulty levels
         difficultyLevels.put(1, "Easy");
         difficultyLevels.put(2, "Medium");
         difficultyLevels.put(3, "Hard");
