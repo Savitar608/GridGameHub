@@ -112,6 +112,12 @@ public final class Tile<T extends GamePiece> {
         return lastUpdatedAt;
     }
 
+    /**
+     * Internal helper that updates the occupant reference and refreshes the last
+     * modified timestamp without toggling the public update flag.
+     *
+     * @param newOccupant piece to store (may be {@code null} to represent an empty tile)
+     */
     private void setOccupantInternal(T newOccupant) {
         this.occupant = newOccupant;
         this.lastUpdatedAt = System.currentTimeMillis();

@@ -230,6 +230,16 @@ public class GameController {
         }
     }
 
+    /**
+     * Presents the player with pre-game actions such as regenerating the board or
+     * viewing scores before starting the run.
+     *
+     * @param game          active game instance orchestrating state
+     * @param inputService  player input source
+     * @param outputService destination for prompts and feedback
+     * @return {@code true} when gameplay should begin; {@code false} if the
+     *         player exits the pre-game menu
+     */
     private boolean presentPreGameOptions(GridGame<?> game, InputService inputService, OutputService outputService) {
         while (!game.isExitRequested()) {
             outputService.println(
@@ -268,6 +278,13 @@ public class GameController {
         return false;
     }
 
+    /**
+     * Renders the player's recorded top scores grouped by difficulty level and
+     * grid size.
+     *
+     * @param game          active game providing context and difficulty labels
+     * @param outputService destination for score output
+     */
     private void displayPlayerTopScores(GridGame<?> game, OutputService outputService) {
         Player player = game.getPlayer();
         outputService.println("");
@@ -308,6 +325,12 @@ public class GameController {
         outputService.println("");
     }
 
+    /**
+     * Converts a grid size key into a comparable area value for sorting.
+     *
+     * @param gridKey textual representation in the form {@code rows x cols}
+     * @return computed area, or {@link Integer#MAX_VALUE} when parsing fails
+     */
     private int parseGridArea(String gridKey) {
         String[] parts = gridKey.split("x");
         if (parts.length != 2) {

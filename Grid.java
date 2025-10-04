@@ -314,6 +314,11 @@ public class Grid<T extends GamePiece> {
         return grid;
     }
 
+    /**
+     * Executes the provided action for every tile within the grid.
+     *
+     * @param action consumer invoked once per tile in row-major order
+     */
     private void forEachTile(java.util.function.Consumer<Tile<T>> action) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {

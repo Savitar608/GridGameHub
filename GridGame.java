@@ -174,15 +174,29 @@ public abstract class GridGame<T extends GamePiece> {
         return isGameOver;
     }
 
+    /**
+     * Indicates whether the player has requested to terminate the current session.
+     *
+     * @return {@code true} when the game should exit gracefully
+     */
     public boolean isExitRequested() {
         return exitRequested;
     }
 
+    /**
+     * Flags the game loop to exit and marks the game as over.
+     */
     protected void requestExit() {
         this.exitRequested = true;
         this.isGameOver = true;
     }
 
+    /**
+     * Evaluates whether the supplied input matches the quit keyword.
+     *
+     * @param input player-provided text to evaluate
+     * @return {@code true} if the input requests termination of the game
+     */
     protected boolean isQuitCommand(String input) {
         return input != null && QUIT_KEYWORD.equalsIgnoreCase(input.trim());
     }
