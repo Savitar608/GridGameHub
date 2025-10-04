@@ -39,9 +39,7 @@ abstract class GridGame<T> {
     protected boolean isGameOver;
     protected Scanner scanner;
     protected Player player;
-    protected Map<Integer, String> difficultyLevels;
-    protected int minDifficultyLevel;
-    protected int maxDifficultyLevel;
+    protected final DifficultyManager difficultyManager;
     private final GameController gameController;
 
     /**
@@ -56,10 +54,11 @@ abstract class GridGame<T> {
         this.gameGrid = new Grid<>(componentType, rows, cols);
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
-        this.player = new Player(); // Initialize with default values
+    this.player = new Player(); // Initialize with default values
+    this.difficultyManager = new DifficultyManager();
 
-        // Initialize default difficulty levels (can be overridden by subclasses)
-        initializeDefaultDifficultyLevels();
+    // Initialize default difficulty levels (can be overridden by subclasses)
+    initializeDefaultDifficultyLevels();
         this.gameController = new GameController();
     }
 
@@ -101,15 +100,10 @@ abstract class GridGame<T> {
      * Initializes the default difficulty levels. Can be overridden by subclasses.
      */
     protected void initializeDefaultDifficultyLevels() {
-        difficultyLevels = new LinkedHashMap<>(); // Preserve insertion order
-
-        // Default difficulty levels
-        difficultyLevels.put(1, "Easy");
-        difficultyLevels.put(2, "Medium");
-        difficultyLevels.put(3, "Hard");
-
-        minDifficultyLevel = Collections.min(difficultyLevels.keySet());
-        maxDifficultyLevel = Collections.max(difficultyLevels.keySet());
+    difficultyManager.clear();
+    difficultyManager.addDifficultyLevel(1, "Easy");
+    difficultyManager.addDifficultyLevel(2, "Medium");
+    difficultyManager.addDifficultyLevel(3, "Hard");
     }
 
     /**
@@ -120,9 +114,7 @@ abstract class GridGame<T> {
      * @param name  The name/description of the difficulty level
      */
     protected void addDifficultyLevel(int level, String name) {
-        difficultyLevels.put(level, name);
-        minDifficultyLevel = Math.min(minDifficultyLevel, level);
-        maxDifficultyLevel = Math.max(maxDifficultyLevel, level);
+    difficultyManager.addDifficultyLevel(level, name);
     }
 
     /**
@@ -132,7 +124,7 @@ abstract class GridGame<T> {
      * @return The name of the difficulty level, or "Unknown" if not found
      */
     protected String getDifficultyName(int level) {
-        return difficultyLevels.getOrDefault(level, "Unknown");
+    return difficultyManager.getDifficultyName(level);
     }
 
     /**
@@ -142,7 +134,7 @@ abstract class GridGame<T> {
      * @return true if the level is valid, false otherwise
      */
     protected boolean isValidDifficultyLevel(int level) {
-        return difficultyLevels.containsKey(level);
+    return difficultyManager.isValidDifficultyLevel(level);
     }
 
     /**
@@ -222,12 +214,14 @@ abstract class GridGame<T> {
     protected void setDifficultyLevel() {
         // Build difficulty options string
         StringBuilder optionsBuilder = new StringBuilder();
-        List<Integer> levels = new ArrayList<>(difficultyLevels.keySet());
-        Collections.sort(levels);
+        List<Integer> levels = difficultyManager.getSortedDifficultyLevels();
+        if (levels.isEmpty()) {
+            throw new IllegalStateException("No difficulty levels configured.");
+        }
 
         for (int i = 0; i < levels.size(); i++) {
             int level = levels.get(i);
-            optionsBuilder.append(level).append(" (").append(difficultyLevels.get(level)).append(")");
+            optionsBuilder.append(level).append(" (").append(difficultyManager.getDifficultyName(level)).append(")");
             if (i < levels.size() - 1) {
                 optionsBuilder.append(", ");
             }
@@ -237,14 +231,16 @@ abstract class GridGame<T> {
         System.out.println("Note: The difficulty level increases exponentially with grid size");
         String chosenLevel = scanner.nextLine();
 
+        int defaultLevel = difficultyManager.getMinDifficultyLevel();
+
         int level;
         try {
             // Parse the input to an integer
             level = Integer.parseInt(chosenLevel);
         } catch (Exception e) {
             // If parsing fails, default to minimum difficulty
-            System.out.println("Invalid input. Defaulting to " + getDifficultyName(minDifficultyLevel) + ".");
-            level = minDifficultyLevel;
+            System.out.println("Invalid input. Defaulting to " + getDifficultyName(defaultLevel) + ".");
+            level = defaultLevel;
         }
 
         // Set the level (Player class will validate and default if invalid)
@@ -252,8 +248,8 @@ abstract class GridGame<T> {
 
         // Check if the level was changed due to validation
         if (!isValidDifficultyLevel(level)) {
-            System.out.println("Invalid level. Defaulting to " + getDifficultyName(minDifficultyLevel) + ".");
-            player.setDifficultyLevel(minDifficultyLevel);
+            System.out.println("Invalid level. Defaulting to " + getDifficultyName(defaultLevel) + ".");
+            player.setDifficultyLevel(defaultLevel);
         }
 
         System.out.println("Difficulty set to: " + getDifficultyName(player.getDifficultyLevel()));
