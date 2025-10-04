@@ -76,6 +76,12 @@ public class GameController {
         scanner.close();
     }
 
+    /**
+     * Prompts the user to decide whether to play again.
+     *
+     * @param scanner the scanner to read user input
+     * @return {@code true} if the user wants to play again, {@code false} otherwise
+     */
     private boolean promptPlayAgain(Scanner scanner) {
         while (true) {
             System.out.println("Would you like to play again? (yes/no)");
