@@ -29,7 +29,7 @@ public class Player {
     private int difficultyLevel;
     private Map<Integer, Map<String, Integer>> topScores; // Map difficulty level -> (grid size -> top score)
 
-    private static final String DEFAULT_PLAYER_NAME = "Master Chief";
+    private static final String[] DEFAULT_PLAYER_NAME = {"Master Chief", "Lara Croft", "Mario", "Zelda", "Link", "Samus Aran", "Pikachu", "Kirby", "Sonic", "Tails"};
     private static final int DEFAULT_DIFFICULTY_LEVEL = 1;
     private static final int DEFAULT_TOP_SCORE = 0;
 
@@ -37,8 +37,8 @@ public class Player {
      * Constructor to create a player with default values.
      */
     public Player() {
-        this.name = DEFAULT_PLAYER_NAME;
-        this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL;
+        this.name = getDefaultPlayerName();
+        this.difficultyLevel = getDefaultDifficultyLevel();
         this.topScores = new HashMap<>();
     }
 
@@ -105,7 +105,7 @@ public class Player {
             setName(trimmedName);
         } else {
             outputService.println("Warning: Invalid name provided. Setting default name.");
-            setName(DEFAULT_PLAYER_NAME);
+            setName(getDefaultPlayerName());
         }
 
         return true;
@@ -259,7 +259,7 @@ public class Player {
      * @return The default player name
      */
     public static String getDefaultPlayerName() {
-        return DEFAULT_PLAYER_NAME;
+        return DEFAULT_PLAYER_NAME[new Random().nextInt(DEFAULT_PLAYER_NAME.length)];
     }
 
     /**
