@@ -1,0 +1,409 @@
+/**
+ * CS611 - Object Oriented Design
+ * Assignment 1 - Sliding Puzzle Game
+ * 
+ * File: SlidingPuzzleGame.java
+ * Description: Concrete implementation of a sliding puzzle built atop {@link GridGame}.
+ *              Handles puzzle initialization, shuffling, user interactions, scoring,
+ *              and win detection across extensible difficulty levels and grid sizes.
+ * 
+ * Features:
+ * - Configurable grid sizes ranging from 3x3 to 20x20
+ * - Difficulty-aware shuffling and score calculations
+ * - Solvability maintained by performing randomized valid moves from the solved state
+ * - Per-grid, per-difficulty score tracking via {@link Player}
+ * 
+ * @version 2.0
+ * @date October 4, 2025
+ * @course CS611 - Object Oriented Design
+ * @assignment Assignment 1
+ */
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+public final class SlidingPuzzleGame extends GridGame<Integer> {
+    public static final int MIN_SIZE = 3;
+    public static final int MAX_SIZE = 20;
+
+    private int emptyRow;
+    private int emptyCol;
+
+    private int currentScore;
+    private int moveCount;
+    private long startTime;
+
+    private static final int DEFAULT_ROWS = 3;
+    private static final int DEFAULT_COLS = 3;
+
+    private String emptyCell = "  ";
+    private String topLeftCorner = "+";
+    private String horizontalBorder = "--+";
+    private String verticalBorder = "|";
+    private String cellFormat = "%2d";
+
+    public SlidingPuzzleGame() {
+        super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS);
+        addDifficultyLevel(4, "Expert");
+        addDifficultyLevel(5, "Master");
+        addDifficultyLevel(6, "Legendary");
+    }
+
+    @Override
+    protected void validateSize() {
+        if (getRows() < MIN_SIZE || getCols() < MIN_SIZE) {
+            throw new IllegalArgumentException("Grid size must be at least " + MIN_SIZE + "x" + MIN_SIZE);
+        }
+    }
+
+    @Override
+    protected void setSize() {
+        System.out.print("Enter grid size (rows x cols) (Min " + MIN_SIZE + ", Max " + MAX_SIZE + "): ");
+        String sizeInput = scanner.nextLine();
+        String[] parts = sizeInput.trim().split("\\s*x\\s*");
+
+        if (parts.length == 2) {
+            try {
+                int rows = Integer.parseInt(parts[0]);
+                int cols = Integer.parseInt(parts[1]);
+
+                if (rows == getRows() && cols == getCols()) {
+                    return;
+                }
+
+                if (rows < MIN_SIZE || cols < MIN_SIZE || rows > MAX_SIZE || cols > MAX_SIZE) {
+                    System.out.println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+                    rows = DEFAULT_ROWS;
+                    cols = DEFAULT_COLS;
+                }
+
+                gameGrid.resize(rows, cols);
+
+                if (getGridSize() < 100) {
+                    horizontalBorder = "--+";
+                    emptyCell = "  ";
+                    cellFormat = "%2d";
+                } else {
+                    horizontalBorder = "---+";
+                    emptyCell = "   ";
+                    cellFormat = "%3d";
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+            }
+        } else {
+            System.out.println("Invalid input. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+        }
+        validateSize();
+    }
+
+    protected int getShuffleMoves() {
+        int baseMultiplier;
+        int diffLevel = player.getDifficultyLevel();
+
+        if (diffLevel <= 3) {
+            switch (diffLevel) {
+                case 1:
+                    baseMultiplier = 3;
+                    break;
+                case 2:
+                    baseMultiplier = 10;
+                    break;
+                case 3:
+                    baseMultiplier = 25;
+                    break;
+                default:
+                    baseMultiplier = 3;
+                    break;
+            }
+        } else {
+            baseMultiplier = (int) Math.pow(5, diffLevel - 1);
+        }
+
+        double exponent = 1.5;
+        double gridSize = getGridSize();
+
+        return (int) (baseMultiplier * Math.pow(gridSize, exponent));
+    }
+
+    private int calculateScore() {
+        if (moveCount == 0) {
+            return 0;
+        }
+
+        long elapsedTimeSeconds = (System.currentTimeMillis() - startTime) / 1000;
+        if (elapsedTimeSeconds == 0) {
+            elapsedTimeSeconds = 1;
+        }
+
+        int baseScore = player.getDifficultyLevel() * getGridSize() * 100;
+        double moveEfficiency = Math.max(0.1, 1.0 / moveCount);
+        double timeEfficiency = Math.max(0.1, 1.0 / elapsedTimeSeconds);
+
+        return (int) (baseScore * moveEfficiency * timeEfficiency * 10);
+    }
+
+    private List<int[]> getPossibleMoves() {
+        List<int[]> moves = new ArrayList<>();
+
+        if (emptyRow > 0) {
+            moves.add(new int[] { emptyRow - 1, emptyCol });
+        }
+        if (emptyRow < getRows() - 1) {
+            moves.add(new int[] { emptyRow + 1, emptyCol });
+        }
+        if (emptyCol > 0) {
+            moves.add(new int[] { emptyRow, emptyCol - 1 });
+        }
+        if (emptyCol < getCols() - 1) {
+            moves.add(new int[] { emptyRow, emptyCol + 1 });
+        }
+
+        return moves;
+    }
+
+    @Override
+    protected void displayWelcomeMessage() {
+        System.out.println("=========================================");
+        System.out.println("    WELCOME TO THE SLIDING PUZZLE GAME!  ");
+        System.out.println("=========================================");
+        System.out.println("\n--- How to Play ---");
+        System.out.println("1. Objective: Arrange the numbers in ascending order, from left to right, top to bottom.");
+        System.out.println("   The empty space should be in the bottom-right corner when solved.");
+        System.out.println("\n   For a 3x3 puzzle, the solved state looks like this:");
+        System.out.println("   +--+--+--+");
+        System.out.println("   | 1| 2| 3|");
+        System.out.println("   +--+--+--+");
+        System.out.println("   | 4| 5| 6|");
+        System.out.println("   +--+--+--+");
+        System.out.println("   | 7| 8|  |");
+        System.out.println("   +--+--+--+");
+        System.out.println("\n2. Your Move: To move a tile, enter the number of the tile you wish to slide");
+        System.out.println("   into the empty space. You can only move tiles that are adjacent");
+        System.out.println("   (up, down, left, or right) to the empty space.");
+        System.out.println("\nGood luck and have fun! 🧩");
+        System.out.println("-----------------------------------------\n");
+    }
+
+    @Override
+    protected void makeMove(int row, int col) {
+        Integer tileValue = gameGrid.get(row, col);
+
+        gameGrid.set(emptyRow, emptyCol, tileValue);
+        gameGrid.set(row, col, 0);
+
+        emptyRow = row;
+        emptyCol = col;
+
+        moveCount++;
+        currentScore = calculateScore();
+    }
+
+    @Override
+    protected void initializeGame() {
+        List<Integer> numbers = new ArrayList<>();
+        for (int i = 1; i < getGridSize(); i++) {
+            numbers.add(i);
+        }
+        numbers.add(0);
+
+        gameGrid.fillFromList(numbers);
+        emptyRow = getRows() - 1;
+        emptyCol = getCols() - 1;
+
+        int shuffleMoves = getShuffleMoves();
+        Random random = new Random();
+        for (int i = 0; i < shuffleMoves; i++) {
+            List<int[]> possibleMoves = getPossibleMoves();
+            if (!possibleMoves.isEmpty()) {
+                int[] move = possibleMoves.get(random.nextInt(possibleMoves.size()));
+                makeMove(move[0], move[1]);
+            }
+        }
+        isGameOver = false;
+
+        currentScore = 0;
+        moveCount = 0;
+        startTime = System.currentTimeMillis();
+    }
+
+    @Override
+    protected void processUserInput() {
+        System.out.print(getPlayerInfo() + ", which tile do you want to slide to the empty space? ");
+        String input = scanner.nextLine();
+        try {
+            int moveTile = Integer.parseInt(input);
+            if (moveTile < 1 || moveTile > getGridSize() - 1) {
+                System.out.println("Invalid tile number. Please enter a number between 1 and " + (getGridSize() - 1));
+                return;
+            }
+
+            for (int i = 0; i < getRows(); i++) {
+                for (int j = 0; j < getCols(); j++) {
+                    if (gameGrid.get(i, j).equals(moveTile)) {
+                        if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) ||
+                                (Math.abs(emptyCol - j) == 1 && emptyRow == i)) {
+                            makeMove(i, j);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            System.out.println("Invalid move. The tile must be adjacent to the empty space.");
+        } catch (NumberFormatException e) {
+            displayInvalidInputMessage();
+        }
+    }
+
+    @Override
+    protected boolean checkWinCondition() {
+        if (!gameGrid.get(getRows() - 1, getCols() - 1).equals(0)) {
+            return false;
+        }
+
+        for (int i = 0; i < getRows(); i++) {
+            for (int j = 0; j < getCols(); j++) {
+                if (i == getRows() - 1 && j == getCols() - 1) {
+                    continue;
+                }
+
+                if (!gameGrid.get(i, j).equals(i * getCols() + j + 1)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    protected void displayInvalidInputMessage() {
+        System.out.println("Invalid input. Please try again.");
+        displayGrid();
+        processUserInput();
+    }
+
+    @Override
+    protected void displayWinMessage() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+
+        int finalScore = calculateScore();
+        long totalTime = (System.currentTimeMillis() - startTime) / 1000;
+
+        System.out.println("Congratulations " + getPlayerInfo() + "! You've solved the puzzle! 🎉");
+        System.out.println();
+        System.out.println("=== GAME STATISTICS ===");
+        System.out.println("Final Score: " + finalScore);
+        System.out.println("Total Moves: " + moveCount);
+        System.out.println("Total Time: " + totalTime + " seconds");
+        System.out.println("Difficulty: "
+                + (player.getDifficultyLevel() == 1 ? "Easy"
+                        : player.getDifficultyLevel() == 2 ? "Medium" : "Hard"));
+        System.out.println("Grid Size: " + getRows() + "x" + getCols());
+
+        int previousTopScore = player.getTopScore(getRows(), getCols());
+        boolean newRecord = player.updateTopScore(finalScore, getRows(), getCols());
+        if (newRecord) {
+            System.out.println();
+            System.out.println("🏆 NEW PERSONAL RECORD! 🏆");
+            if (previousTopScore > 0) {
+                System.out.println("Previous best: " + previousTopScore + " (improved by "
+                        + (finalScore - previousTopScore) + ")");
+            } else {
+                System.out.println("This is your first completed game at this difficulty!");
+            }
+        }
+
+        Map<Integer, Map<String, Integer>> allScores = player.getAllTopScores();
+        System.out.println();
+        System.out.println("=== YOUR TOP SCORES ===");
+        if (allScores.isEmpty()) {
+            System.out.println("No scores recorded yet.");
+        } else {
+            List<Integer> levels = new ArrayList<>(allScores.keySet());
+            Collections.sort(levels);
+            for (int level : levels) {
+                Map<String, Integer> gridScores = allScores.get(level);
+                if (gridScores == null || gridScores.isEmpty()) {
+                    continue;
+                }
+
+                System.out.println(getDifficultyName(level) + " (Level " + level + "):");
+                List<String> gridSizes = new ArrayList<>(gridScores.keySet());
+                gridSizes.sort((a, b) -> {
+                    int areaA = parseGridArea(a);
+                    int areaB = parseGridArea(b);
+                    if (areaA != areaB) {
+                        return Integer.compare(areaA, areaB);
+                    }
+                    return a.compareTo(b);
+                });
+
+                for (String gridSize : gridSizes) {
+                    System.out.println("  " + gridSize + " -> " + gridScores.get(gridSize));
+                }
+            }
+        }
+        System.out.println("=======================");
+        System.out.println();
+    }
+
+    @Override
+    protected void displayGrid() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(topLeftCorner);
+        for (int j = 0; j < getCols(); j++) {
+            sb.append(horizontalBorder);
+        }
+        sb.append("\n");
+
+        for (int i = 0; i < getRows(); i++) {
+            sb.append(verticalBorder);
+            for (int j = 0; j < getCols(); j++) {
+                Integer cellValue = gameGrid.get(i, j);
+                if (cellValue.equals(0)) {
+                    sb.append(emptyCell).append(verticalBorder);
+                } else {
+                    sb.append(String.format(cellFormat, cellValue)).append(verticalBorder);
+                }
+            }
+
+            sb.append("\n" + topLeftCorner);
+            for (int j = 0; j < getCols(); j++) {
+                sb.append(horizontalBorder);
+            }
+            sb.append("\n");
+        }
+
+        System.out.println(sb.toString());
+
+        if (moveCount > 0) {
+            long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+            String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
+            System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
+                    + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
+            System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
+                    + getCols() + "): " + player.getTopScore(getRows(), getCols()));
+        }
+    }
+
+    private int parseGridArea(String gridKey) {
+        String[] parts = gridKey.split("x");
+        if (parts.length != 2) {
+            return Integer.MAX_VALUE;
+        }
+        try {
+            int rows = Integer.parseInt(parts[0]);
+            int cols = Integer.parseInt(parts[1]);
+            return rows * cols;
+        } catch (NumberFormatException ex) {
+            return Integer.MAX_VALUE;
+        }
+    }
+}
