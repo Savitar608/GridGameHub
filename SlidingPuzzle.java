@@ -153,6 +153,14 @@ abstract class GridGame<T> {
         }
 
         System.out.println("Difficulty set to: " + difficultyLevels.get(player.getDifficultyLevel()));
+        
+        // Show current top score for this difficulty
+        int currentTopScore = player.getTopScore();
+        if (currentTopScore > 0) {
+            System.out.println("Your current top score for this difficulty: " + currentTopScore);
+        } else {
+            System.out.println("No previous score for this difficulty level.");
+        }
 
         if (player.getDifficultyLevel() == 3) {
             System.out.println("Warning: Hard mode can be quite challenging!");
@@ -555,10 +563,17 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             if (previousTopScore > 0) {
                 System.out.println("Previous best: " + previousTopScore + " (improved by " + (finalScore - previousTopScore) + ")");
             } else {
-                System.out.println("This is your first completed game!");
+                System.out.println("This is your first completed game at this difficulty!");
             }
         }
-        System.out.println("Your Top Score: " + player.getTopScore());
+        
+        // Display all top scores
+        int[] allScores = player.getAllTopScores();
+        System.out.println();
+        System.out.println("=== YOUR TOP SCORES ===");
+        System.out.println("Easy: " + allScores[0]);
+        System.out.println("Medium: " + allScores[1]);
+        System.out.println("Hard: " + allScores[2]);
         System.out.println("=======================");
         System.out.println();
 
@@ -610,8 +625,10 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         // Display game statistics
         if (moveCount > 0) {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+            String currentDifficulty = player.getDifficultyLevel() == 1 ? "Easy" : 
+                                     player.getDifficultyLevel() == 2 ? "Medium" : "Hard";
             System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore);
-            System.out.println(player.getName() + "'s Top Score: " + player.getTopScore());
+            System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + "): " + player.getTopScore());
         }
     }
 }
