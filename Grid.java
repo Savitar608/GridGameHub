@@ -1,3 +1,4 @@
+
 /**
  * CS611 - Object Oriented Design
  * Assignment 1 - Sliding Puzzle Game
@@ -27,7 +28,8 @@ import java.util.*;
 
 /**
  * Generic grid class for managing 2D grid structures.
- * Supports any data type through generics and provides essential grid operations.
+ * Supports any data type through generics and provides essential grid
+ * operations.
  *
  * @param <T> The type of elements stored in the grid
  */
@@ -41,8 +43,8 @@ public class Grid<T> {
      * Constructor to create a grid with specified dimensions and type.
      *
      * @param componentType The class type of elements to store in the grid
-     * @param rows The number of rows in the grid
-     * @param cols The number of columns in the grid
+     * @param rows          The number of rows in the grid
+     * @param cols          The number of columns in the grid
      * @throws IllegalArgumentException if rows or cols are less than 1
      */
     @SuppressWarnings("unchecked")
@@ -50,11 +52,11 @@ public class Grid<T> {
         if (rows < 1 || cols < 1) {
             throw new IllegalArgumentException("Row and column sizes must be positive integers.");
         }
-        
+
         this.componentType = componentType;
         this.rows = rows;
         this.cols = cols;
-        
+
         // Create a 2D generic array properly using reflection
         T[][] tempGrid = (T[][]) Array.newInstance(componentType, rows, 0);
         for (int i = 0; i < rows; i++) {
@@ -106,8 +108,8 @@ public class Grid<T> {
     /**
      * Sets the element at the specified position.
      *
-     * @param row The row index (0-based)
-     * @param col The column index (0-based)
+     * @param row   The row index (0-based)
+     * @param col   The column index (0-based)
      * @param value The value to set
      * @throws IndexOutOfBoundsException if the position is invalid
      */
@@ -126,7 +128,7 @@ public class Grid<T> {
     private void validateBounds(int row, int col) {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             throw new IndexOutOfBoundsException(
-                "Position (" + row + ", " + col + ") is out of bounds for grid of size " + rows + "x" + cols);
+                    "Position (" + row + ", " + col + ") is out of bounds for grid of size " + rows + "x" + cols);
         }
     }
 
@@ -163,9 +165,9 @@ public class Grid<T> {
     public void fillFromList(List<T> values) {
         if (values.size() != rows * cols) {
             throw new IllegalArgumentException(
-                "List size (" + values.size() + ") must match grid size (" + (rows * cols) + ")");
+                    "List size (" + values.size() + ") must match grid size (" + (rows * cols) + ")");
         }
-        
+
         Iterator<T> iterator = values.iterator();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -178,13 +180,14 @@ public class Grid<T> {
      * Finds the position of the first occurrence of the specified value.
      *
      * @param value The value to search for
-     * @return An array containing [row, col] of the first occurrence, or null if not found
+     * @return An array containing [row, col] of the first occurrence, or null if
+     *         not found
      */
     public int[] findPosition(T value) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (Objects.equals(grid[i][j], value)) {
-                    return new int[]{i, j};
+                    return new int[] { i, j };
                 }
             }
         }
@@ -203,7 +206,7 @@ public class Grid<T> {
     public void swap(int row1, int col1, int row2, int col2) {
         validateBounds(row1, col1);
         validateBounds(row2, col2);
-        
+
         T temp = grid[row1][col1];
         grid[row1][col1] = grid[row2][col2];
         grid[row2][col2] = temp;
@@ -226,7 +229,7 @@ public class Grid<T> {
     }
 
     /**
-     * Resizes the grid to new dimensions. 
+     * Resizes the grid to new dimensions.
      * Content is preserved where possible, new cells are set to null.
      *
      * @param newRows The new number of rows
@@ -238,13 +241,13 @@ public class Grid<T> {
         if (newRows < 1 || newCols < 1) {
             throw new IllegalArgumentException("Row and column sizes must be positive integers.");
         }
-        
+
         // Create new grid
         T[][] newGrid = (T[][]) Array.newInstance(componentType, newRows, 0);
         for (int i = 0; i < newRows; i++) {
             newGrid[i] = (T[]) Array.newInstance(componentType, newCols);
         }
-        
+
         // Copy existing content
         int copyRows = Math.min(rows, newRows);
         int copyCols = Math.min(cols, newCols);
@@ -253,7 +256,7 @@ public class Grid<T> {
                 newGrid[i][j] = grid[i][j];
             }
         }
-        
+
         // Update grid properties
         this.grid = newGrid;
         this.rows = newRows;
@@ -273,7 +276,8 @@ public class Grid<T> {
             sb.append("[");
             for (int j = 0; j < cols; j++) {
                 sb.append(grid[i][j]);
-                if (j < cols - 1) sb.append(", ");
+                if (j < cols - 1)
+                    sb.append(", ");
             }
             sb.append("]\n");
         }

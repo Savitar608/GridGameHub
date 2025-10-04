@@ -281,7 +281,7 @@ abstract class GridGame<T> {
         System.out.println("Difficulty set to: " + getDifficultyName(player.getDifficultyLevel()));
 
         // Show current top score for this difficulty
-            int currentTopScore = player.getTopScore(getRows(), getCols());
+        int currentTopScore = player.getTopScore(getRows(), getCols());
         if (currentTopScore > 0) {
             System.out.println("Your current top score for this difficulty: " + currentTopScore);
         } else {
@@ -797,11 +797,12 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
             String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
             System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
-                + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
+                    + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
             System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
-                + getCols() + "): " + player.getTopScore(getRows(), getCols()));
+                    + getCols() + "): " + player.getTopScore(getRows(), getCols()));
         }
     }
+
     private int parseGridArea(String gridKey) {
         String[] parts = gridKey.split("x");
         if (parts.length != 2) {
