@@ -1,13 +1,15 @@
+import java.util.*;
+
 /**
  * Represents a player in the game with their name and difficulty level preference.
  */
 public class Player {
     private String name;
     private int difficultyLevel;
-    private int[] topScores; // Index 0=Easy, 1=Medium, 2=Hard
+    private Map<Integer, Integer> topScores; // Map difficulty level to top score
     
     private static final String DEFAULT_PLAYER_NAME = "Master Chief";
-    private static final int DEFAULT_DIFFICULTY_LEVEL = 1; // Easy
+    private static final int DEFAULT_DIFFICULTY_LEVEL = 1;
     private static final int DEFAULT_TOP_SCORE = 0;
     
     /**
@@ -16,11 +18,7 @@ public class Player {
     public Player() {
         this.name = DEFAULT_PLAYER_NAME;
         this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL;
-        this.topScores = new int[3]; // Easy, Medium, Hard
-        // Initialize all scores to 0
-        for (int i = 0; i < topScores.length; i++) {
-            topScores[i] = DEFAULT_TOP_SCORE;
-        }
+        this.topScores = new HashMap<>();
     }
     
     /**
@@ -32,11 +30,7 @@ public class Player {
     public Player(String name, int difficultyLevel) {
         setName(name);
         setDifficultyLevel(difficultyLevel);
-        this.topScores = new int[3]; // Easy, Medium, Hard
-        // Initialize all scores to 0
-        for (int i = 0; i < topScores.length; i++) {
-            topScores[i] = DEFAULT_TOP_SCORE;
-        }
+        this.topScores = new HashMap<>();
     }
     
     /**
@@ -62,12 +56,12 @@ public class Player {
     }
     
     /**
-     * Sets the player's difficulty level. If the level is invalid, uses the default level.
+     * Sets the player's difficulty level. Any positive difficulty level is accepted.
      * 
-     * @param difficultyLevel The difficulty level (1-3)
+     * @param difficultyLevel The difficulty level (any positive integer)
      */
     public void setDifficultyLevel(int difficultyLevel) {
-        if (difficultyLevel >= 1 && difficultyLevel <= 3) {
+        if (difficultyLevel >= 1) {
             this.difficultyLevel = difficultyLevel;
         } else {
             this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL;
@@ -95,23 +89,31 @@ public class Player {
     /**
      * Gets the player's top score for a specific difficulty level.
      * 
-     * @param difficulty The difficulty level (1-3)
+     * @param difficulty The difficulty level
      * @return The player's best score for the specified difficulty
      */
     public int getTopScore(int difficulty) {
-        if (difficulty >= 1 && difficulty <= 3) {
-            return topScores[difficulty - 1]; // Convert to 0-based index
-        }
-        return DEFAULT_TOP_SCORE;
+        return topScores.getOrDefault(difficulty, DEFAULT_TOP_SCORE);
     }
     
     /**
-     * Gets all top scores for all difficulty levels.
+     * Gets all top scores for all played difficulty levels.
      * 
-     * @return Array of top scores [Easy, Medium, Hard]
+     * @return Map of difficulty levels to top scores
      */
-    public int[] getAllTopScores() {
-        return topScores.clone(); // Return a copy to prevent external modification
+    public Map<Integer, Integer> getAllTopScores() {
+        return new HashMap<>(topScores); // Return a copy to prevent external modification
+    }
+    
+    /**
+     * Gets a sorted list of all difficulty levels that have been played.
+     * 
+     * @return Sorted list of difficulty levels
+     */
+    public List<Integer> getPlayedDifficultyLevels() {
+        List<Integer> levels = new ArrayList<>(topScores.keySet());
+        Collections.sort(levels);
+        return levels;
     }
     
     /**
@@ -128,16 +130,14 @@ public class Player {
      * Updates the player's top score for a specific difficulty level if the new score is better (higher).
      * 
      * @param newScore The new score to compare with the current top score
-     * @param difficulty The difficulty level (1-3)
+     * @param difficulty The difficulty level
      * @return true if the top score was updated, false otherwise
      */
     public boolean updateTopScore(int newScore, int difficulty) {
-        if (difficulty >= 1 && difficulty <= 3) {
-            int index = difficulty - 1; // Convert to 0-based index
-            if (newScore > topScores[index]) {
-                topScores[index] = newScore;
-                return true;
-            }
+        int currentScore = topScores.getOrDefault(difficulty, DEFAULT_TOP_SCORE);
+        if (newScore > currentScore) {
+            topScores.put(difficulty, newScore);
+            return true;
         }
         return false;
     }
@@ -152,21 +152,17 @@ public class Player {
     /**
      * Resets the player's top score for a specific difficulty level.
      * 
-     * @param difficulty The difficulty level (1-3)
+     * @param difficulty The difficulty level
      */
     public void resetTopScore(int difficulty) {
-        if (difficulty >= 1 && difficulty <= 3) {
-            topScores[difficulty - 1] = DEFAULT_TOP_SCORE;
-        }
+        topScores.remove(difficulty);
     }
     
     /**
      * Resets all top scores for all difficulty levels.
      */
     public void resetAllTopScores() {
-        for (int i = 0; i < topScores.length; i++) {
-            topScores[i] = DEFAULT_TOP_SCORE;
-        }
+        topScores.clear();
     }
     
     /**
@@ -194,7 +190,19 @@ public class Player {
      */
     @Override
     public String toString() {
-        return "Player{name='" + name + "', difficultyLevel=" + difficultyLevel + 
-               ", topScores=[Easy:" + topScores[0] + ", Medium:" + topScores[1] + ", Hard:" + topScores[2] + "]}";
+        StringBuilder sb = new StringBuilder();
+        sb.append("Player{name='").append(name).append("', difficultyLevel=").append(difficultyLevel);
+        sb.append(", topScores={");
+        
+        List<Integer> levels = getPlayedDifficultyLevels();
+        for (int i = 0; i < levels.size(); i++) {
+            int level = levels.get(i);
+            sb.append(level).append(":").append(topScores.get(level));
+            if (i < levels.size() - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append("}}");
+        return sb.toString();
     }
 }

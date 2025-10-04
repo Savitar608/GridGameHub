@@ -16,15 +16,9 @@ abstract class GridGame<T> {
     protected boolean isGameOver;
     protected Scanner scanner;
     protected Player player;
-
-    private static final Map<Integer, String> difficultyLevels;
-    static {
-        Map<Integer, String> temp = new HashMap<>();
-        temp.put(1, "Easy");
-        temp.put(2, "Medium");
-        temp.put(3, "Hard");
-        difficultyLevels = Collections.unmodifiableMap(temp);
-    }
+    protected Map<Integer, String> difficultyLevels;
+    protected int minDifficultyLevel;
+    protected int maxDifficultyLevel;
 
     /**
      * Constructor to initialize the game.
@@ -52,6 +46,54 @@ abstract class GridGame<T> {
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
         this.player = new Player(); // Initialize with default values
+        
+        // Initialize default difficulty levels (can be overridden by subclasses)
+        initializeDefaultDifficultyLevels();
+    }
+    
+    /**
+     * Initializes the default difficulty levels. Can be overridden by subclasses.
+     */
+    protected void initializeDefaultDifficultyLevels() {
+        difficultyLevels = new LinkedHashMap<>(); // Preserve insertion order
+        difficultyLevels.put(1, "Easy");
+        difficultyLevels.put(2, "Medium");
+        difficultyLevels.put(3, "Hard");
+        
+        minDifficultyLevel = Collections.min(difficultyLevels.keySet());
+        maxDifficultyLevel = Collections.max(difficultyLevels.keySet());
+    }
+    
+    /**
+     * Adds a new difficulty level. Useful for extending the game with custom difficulties.
+     * 
+     * @param level The difficulty level number
+     * @param name The name/description of the difficulty level
+     */
+    protected void addDifficultyLevel(int level, String name) {
+        difficultyLevels.put(level, name);
+        minDifficultyLevel = Math.min(minDifficultyLevel, level);
+        maxDifficultyLevel = Math.max(maxDifficultyLevel, level);
+    }
+    
+    /**
+     * Gets the name of a difficulty level.
+     * 
+     * @param level The difficulty level number
+     * @return The name of the difficulty level, or "Unknown" if not found
+     */
+    protected String getDifficultyName(int level) {
+        return difficultyLevels.getOrDefault(level, "Unknown");
+    }
+    
+    /**
+     * Checks if a difficulty level is valid.
+     * 
+     * @param level The difficulty level to check
+     * @return true if the level is valid, false otherwise
+     */
+    protected boolean isValidDifficultyLevel(int level) {
+        return difficultyLevels.containsKey(level);
     }
 
     /**
@@ -130,7 +172,20 @@ abstract class GridGame<T> {
      * @param level The difficulty level (1 to 3).
      */
     protected void setDifficultyLevel() {
-        System.out.println("Hey " + getPlayerInfo() + ", choose your difficulty level: 1 (Easy), 2 (Medium), 3 (Hard)");
+        // Build difficulty options string
+        StringBuilder optionsBuilder = new StringBuilder();
+        List<Integer> levels = new ArrayList<>(difficultyLevels.keySet());
+        Collections.sort(levels);
+        
+        for (int i = 0; i < levels.size(); i++) {
+            int level = levels.get(i);
+            optionsBuilder.append(level).append(" (").append(difficultyLevels.get(level)).append(")");
+            if (i < levels.size() - 1) {
+                optionsBuilder.append(", ");
+            }
+        }
+        
+        System.out.println("Hey " + getPlayerInfo() + ", choose your difficulty level: " + optionsBuilder.toString());
         System.out.println("Note: The difficulty level increases exponentially with grid size");
         String chosenLevel = scanner.nextLine();
 
@@ -139,20 +194,21 @@ abstract class GridGame<T> {
             // Parse the input to an integer
             level = Integer.parseInt(chosenLevel);
         } catch (Exception e) {
-            // If parsing fails, default to Easy
-            System.out.println("Invalid input. Defaulting to Easy.");
-            level = Player.getDefaultDifficultyLevel();
+            // If parsing fails, default to minimum difficulty
+            System.out.println("Invalid input. Defaulting to " + getDifficultyName(minDifficultyLevel) + ".");
+            level = minDifficultyLevel;
         }
 
         // Set the level (Player class will validate and default if invalid)
         player.setDifficultyLevel(level);
         
         // Check if the level was changed due to validation
-        if (level != player.getDifficultyLevel() && (level < 1 || level > 3)) {
-            System.out.println("Invalid level. Defaulting to Easy.");
+        if (!isValidDifficultyLevel(level)) {
+            System.out.println("Invalid level. Defaulting to " + getDifficultyName(minDifficultyLevel) + ".");
+            player.setDifficultyLevel(minDifficultyLevel);
         }
 
-        System.out.println("Difficulty set to: " + difficultyLevels.get(player.getDifficultyLevel()));
+        System.out.println("Difficulty set to: " + getDifficultyName(player.getDifficultyLevel()));
         
         // Show current top score for this difficulty
         int currentTopScore = player.getTopScore();
@@ -162,9 +218,26 @@ abstract class GridGame<T> {
             System.out.println("No previous score for this difficulty level.");
         }
 
-        if (player.getDifficultyLevel() == 3) {
-            System.out.println("Warning: Hard mode can be quite challenging!");
+        // Show difficulty-specific warnings or tips
+        showDifficultySpecificMessage(player.getDifficultyLevel());
+    }
+    
+    /**
+     * Shows difficulty-specific messages. Can be overridden by subclasses.
+     * 
+     * @param difficultyLevel The current difficulty level
+     */
+    protected void showDifficultySpecificMessage(int difficultyLevel) {
+        // Show different messages based on difficulty level
+        if (difficultyLevel >= 4) {
+            System.out.println("🔥 EXTREME DIFFICULTY ACTIVATED! 🔥");
+            System.out.println("Warning: " + getDifficultyName(difficultyLevel) + " mode is for seasoned puzzle masters!");
+            System.out.println("Tip: Take your time and think several moves ahead. Consider using pen and paper to track your strategy.");
+        } else if (difficultyLevel == 3) {
+            System.out.println("Warning: " + getDifficultyName(difficultyLevel) + " mode can be quite challenging!");
             System.out.println("Tip: Plan your moves ahead and try to visualize the solution.");
+        } else if (difficultyLevel == 1) {
+            System.out.println("Perfect for beginners! Take your time to learn the game mechanics.");
         }
     }
 
@@ -308,19 +381,28 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      */
     protected int getShuffleMoves() {
         int baseMultiplier; // Base multiplier for shuffle moves
-        switch (player.getDifficultyLevel()) {
-            case 1: // Easy
-                baseMultiplier = 3;
-                break;
-            case 2: // Medium
-                baseMultiplier = 10;
-                break;
-            case 3: // Hard
-                baseMultiplier = 25;
-                break;
-            default:
-                baseMultiplier = 3; // Default to Easy if something goes wrong
-                break;
+        int diffLevel = player.getDifficultyLevel();
+        
+        // Extensible difficulty system - base multiplier scales with difficulty level
+        if (diffLevel <= 3) {
+            // Original difficulty levels
+            switch (diffLevel) {
+                case 1: // Easy
+                    baseMultiplier = 3;
+                    break;
+                case 2: // Medium
+                    baseMultiplier = 10;
+                    break;
+                case 3: // Hard
+                    baseMultiplier = 25;
+                    break;
+                default:
+                    baseMultiplier = 3;
+                    break;
+            }
+        } else {
+            // Extended difficulty levels - exponential scaling
+            baseMultiplier = (int) Math.pow(5, diffLevel - 1);
         }
 
         double exponent = 1.5; // Exponent to scale with grid size
@@ -383,6 +465,11 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      */
     public SlidingPuzzleGame() {
         super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS);
+        
+        // Add additional difficulty levels to demonstrate extensibility
+        addDifficultyLevel(4, "Expert");
+        addDifficultyLevel(5, "Master");
+        addDifficultyLevel(6, "Legendary");
     }
 
     @Override
@@ -568,12 +655,18 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         }
         
         // Display all top scores
-        int[] allScores = player.getAllTopScores();
+        Map<Integer, Integer> allScores = player.getAllTopScores();
         System.out.println();
         System.out.println("=== YOUR TOP SCORES ===");
-        System.out.println("Easy: " + allScores[0]);
-        System.out.println("Medium: " + allScores[1]);
-        System.out.println("Hard: " + allScores[2]);
+        if (allScores.isEmpty()) {
+            System.out.println("No scores recorded yet.");
+        } else {
+            List<Integer> levels = new ArrayList<>(allScores.keySet());
+            Collections.sort(levels);
+            for (int level : levels) {
+                System.out.println(getDifficultyName(level) + " (Level " + level + "): " + allScores.get(level));
+            }
+        }
         System.out.println("=======================");
         System.out.println();
 
@@ -625,8 +718,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         // Display game statistics
         if (moveCount > 0) {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-            String currentDifficulty = player.getDifficultyLevel() == 1 ? "Easy" : 
-                                     player.getDifficultyLevel() == 2 ? "Medium" : "Hard";
+            String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
             System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore);
             System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + "): " + player.getTopScore());
         }
