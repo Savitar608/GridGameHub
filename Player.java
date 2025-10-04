@@ -30,7 +30,7 @@ import java.util.*;
 public class Player {
     private String name;
     private int difficultyLevel;
-    private Map<Integer, Integer> topScores; // Map difficulty level to top score
+    private Map<Integer, Map<String, Integer>> topScores; // Map difficulty level -> (grid size -> top score)
     
     private static final String DEFAULT_PLAYER_NAME = "Master Chief";
     private static final int DEFAULT_DIFFICULTY_LEVEL = 1;
@@ -42,7 +42,7 @@ public class Player {
     public Player() {
         this.name = DEFAULT_PLAYER_NAME;
         this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL;
-        this.topScores = new HashMap<>();
+    this.topScores = new HashMap<>();
     }
     
     /**
@@ -54,7 +54,7 @@ public class Player {
     public Player(String name, int difficultyLevel) {
         setName(name);
         setDifficultyLevel(difficultyLevel);
-        this.topScores = new HashMap<>();
+    this.topScores = new HashMap<>();
     }
     
     /**
@@ -106,18 +106,24 @@ public class Player {
      * 
      * @return The player's best score for current difficulty
      */
-    public int getTopScore() {
-        return getTopScore(difficultyLevel);
+    public int getTopScore(int rows, int cols) {
+        return getTopScore(difficultyLevel, rows, cols);
     }
     
     /**
      * Gets the player's top score for a specific difficulty level.
      * 
      * @param difficulty The difficulty level
+     * @param rows The number of rows in the grid
+     * @param cols The number of columns in the grid
      * @return The player's best score for the specified difficulty
      */
-    public int getTopScore(int difficulty) {
-        return topScores.getOrDefault(difficulty, DEFAULT_TOP_SCORE);
+    public int getTopScore(int difficulty, int rows, int cols) {
+        Map<String, Integer> difficultyScores = topScores.get(difficulty);
+        if (difficultyScores == null) {
+            return DEFAULT_TOP_SCORE;
+        }
+        return difficultyScores.getOrDefault(toGridKey(rows, cols), DEFAULT_TOP_SCORE);
     }
     
     /**
@@ -125,8 +131,12 @@ public class Player {
      * 
      * @return Map of difficulty levels to top scores
      */
-    public Map<Integer, Integer> getAllTopScores() {
-        return new HashMap<>(topScores); // Return a copy to prevent external modification
+    public Map<Integer, Map<String, Integer>> getAllTopScores() {
+        Map<Integer, Map<String, Integer>> topScoresMap = new HashMap<>();
+        for (Map.Entry<Integer, Map<String, Integer>> entry : topScores.entrySet()) {
+            topScoresMap.put(entry.getKey(), new HashMap<>(entry.getValue()));
+        }
+        return topScoresMap;
     }
     
     /**
@@ -135,7 +145,7 @@ public class Player {
      * @return Sorted list of difficulty levels
      */
     public List<Integer> getPlayedDifficultyLevels() {
-        List<Integer> levels = new ArrayList<>(topScores.keySet());
+    List<Integer> levels = new ArrayList<>(topScores.keySet());
         Collections.sort(levels);
         return levels;
     }
@@ -146,8 +156,8 @@ public class Player {
      * @param newScore The new score to compare with the current top score
      * @return true if the top score was updated, false otherwise
      */
-    public boolean updateTopScore(int newScore) {
-        return updateTopScore(newScore, difficultyLevel);
+    public boolean updateTopScore(int newScore, int rows, int cols) {
+        return updateTopScore(newScore, difficultyLevel, rows, cols);
     }
     
     /**
@@ -155,12 +165,16 @@ public class Player {
      * 
      * @param newScore The new score to compare with the current top score
      * @param difficulty The difficulty level
+     * @param rows The number of rows in the grid
+     * @param cols The number of columns in the grid
      * @return true if the top score was updated, false otherwise
      */
-    public boolean updateTopScore(int newScore, int difficulty) {
-        int currentScore = topScores.getOrDefault(difficulty, DEFAULT_TOP_SCORE);
+    public boolean updateTopScore(int newScore, int difficulty, int rows, int cols) {
+        String gridKey = toGridKey(rows, cols);
+        Map<String, Integer> difficultyScores = topScores.computeIfAbsent(difficulty, key -> new HashMap<>());
+        int currentScore = difficultyScores.getOrDefault(gridKey, DEFAULT_TOP_SCORE);
         if (newScore > currentScore) {
-            topScores.put(difficulty, newScore);
+            difficultyScores.put(gridKey, newScore);
             return true;
         }
         return false;
@@ -169,8 +183,8 @@ public class Player {
     /**
      * Resets the player's top score for the current difficulty level.
      */
-    public void resetTopScore() {
-        resetTopScore(difficultyLevel);
+    public void resetTopScore(int rows, int cols) {
+        resetTopScore(difficultyLevel, rows, cols);
     }
     
     /**
@@ -178,8 +192,14 @@ public class Player {
      * 
      * @param difficulty The difficulty level
      */
-    public void resetTopScore(int difficulty) {
-        topScores.remove(difficulty);
+    public void resetTopScore(int difficulty, int rows, int cols) {
+        Map<String, Integer> difficultyScores = topScores.get(difficulty);
+        if (difficultyScores != null) {
+            difficultyScores.remove(toGridKey(rows, cols));
+            if (difficultyScores.isEmpty()) {
+                topScores.remove(difficulty);
+            }
+        }
     }
     
     /**
@@ -221,12 +241,16 @@ public class Player {
         List<Integer> levels = getPlayedDifficultyLevels();
         for (int i = 0; i < levels.size(); i++) {
             int level = levels.get(i);
-            sb.append(level).append(":").append(topScores.get(level));
+            sb.append(level).append("=").append(topScores.get(level));
             if (i < levels.size() - 1) {
                 sb.append(", ");
             }
         }
         sb.append("}}");
         return sb.toString();
+    }
+
+    private String toGridKey(int rows, int cols) {
+        return rows + "x" + cols;
     }
 }
