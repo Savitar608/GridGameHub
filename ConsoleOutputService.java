@@ -32,16 +32,32 @@ public class ConsoleOutputService implements OutputService {
         this.printStream = Objects.requireNonNull(printStream, "printStream must not be null");
     }
 
+    /**
+     * Writes the provided message to the configured {@link PrintStream} without
+     * appending a newline.
+     *
+     * @param message text to emit
+     */
     @Override
     public void print(String message) {
         printStream.print(message);
     }
 
+    /**
+     * Writes the provided message followed by the platform newline to the
+     * configured {@link PrintStream}.
+     *
+     * @param message line of text to emit
+     */
     @Override
     public void println(String message) {
         printStream.println(message);
     }
 
+    /**
+     * Flushes any buffered output on the underlying {@link PrintStream} to ensure
+     * it appears immediately.
+     */
     @Override
     public void flush() {
         printStream.flush();

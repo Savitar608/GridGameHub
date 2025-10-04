@@ -35,6 +35,9 @@ import java.util.Objects;
 public class DifficultyManager {
     private final Map<Integer, String> difficultyLevels;
 
+    /**
+     * Creates an empty difficulty registry ready to accept level definitions.
+     */
     public DifficultyManager() {
         this.difficultyLevels = new LinkedHashMap<>();
     }
@@ -116,8 +119,9 @@ public class DifficultyManager {
     /**
      * Displays a difficulty-specific message to the player based on the level
      * selected.
-     * 
+     *
      * @param difficultyLevel the level for which to display the message
+     * @param outputService   destination for the explanatory messages
      */
     public void displayDifficultyMessage(int difficultyLevel, OutputService outputService) {
         Objects.requireNonNull(outputService, "outputService must not be null");
@@ -146,6 +150,11 @@ public class DifficultyManager {
         return new LinkedHashMap<>(difficultyLevels);
     }
 
+    /**
+     * Returns a human-readable representation of the configured difficulty state.
+     *
+     * @return string describing the known difficulty levels
+     */
     @Override
     public String toString() {
         return "DifficultyManager" + Objects.toString(difficultyLevels);

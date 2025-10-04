@@ -69,6 +69,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         addDifficultyLevel(6, "Legendary");
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Ensures the selected grid dimensions remain within the supported range for
+     * the sliding puzzle.
+     */
     @Override
     protected void validateSize() {
         if (getRows() < MIN_SIZE || getCols() < MIN_SIZE) {
@@ -76,6 +82,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Captures user input for grid dimensions, applying defaults and adjusting
+     * display formatting based on the chosen size.
+     */
     @Override
     protected void setSize() {
         OutputService outputService = getOutputService();
@@ -126,9 +138,15 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         validateSize();
     }
 
+    /**
+     * Calculates how many randomized moves should be performed to shuffle the
+     * puzzle before each game based on difficulty and grid size.
+     *
+     * @return number of shuffling iterations to execute
+     */
     protected int getShuffleMoves() {
-    int baseMultiplier;
-    int diffLevel = getPlayer().getDifficultyLevel();
+        int baseMultiplier;
+        int diffLevel = getPlayer().getDifficultyLevel();
 
         if (diffLevel <= 3) {
             switch (diffLevel) {
@@ -155,6 +173,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         return (int) (baseMultiplier * Math.pow(gridSize, exponent));
     }
 
+    /**
+     * Computes the current score using difficulty, moves taken, and elapsed time
+     * as factors.
+     *
+     * @return up-to-date score for the player
+     */
     private int calculateScore() {
         if (moveCount == 0) {
             return 0;
@@ -165,13 +189,22 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
             elapsedTimeSeconds = 1;
         }
 
-    int baseScore = getPlayer().getDifficultyLevel() * getGridSize() * 100;
+        // Base score scales with difficulty and grid size
+        int baseScore = getPlayer().getDifficultyLevel() * getGridSize() * 100;
+
+        // Apply penalties for moves and time taken
         double moveEfficiency = Math.max(0.1, 1.0 / moveCount);
         double timeEfficiency = Math.max(0.1, 1.0 / elapsedTimeSeconds);
 
         return (int) (baseScore * moveEfficiency * timeEfficiency * 10);
     }
 
+    /**
+     * Determines the set of board coordinates that are adjacent to the empty
+     * tile and therefore movable.
+     *
+     * @return list of row/column index pairs eligible to slide into the gap
+     */
     private List<int[]> getPossibleMoves() {
         List<int[]> moves = new ArrayList<>();
 
@@ -191,6 +224,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         return moves;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Supplements the generic welcome text with the sliding puzzle's specific
+     * instructions and an illustrative solved board layout.
+     */
     @Override
     protected void displayWelcomeMessage() {
         OutputService outputService = getOutputService();
@@ -215,6 +254,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         outputService.println("-----------------------------------------\n");
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Moves the selected {@link SlidingPuzzlePiece} into the empty slot while
+     * tracking the new location of that empty tile for future moves.
+     */
     @Override
     protected void makeMove(int row, int col) {
         SlidingPuzzlePiece tilePiece = gameGrid.get(row, col);
@@ -232,6 +277,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         currentScore = calculateScore();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Builds the solved board configuration and then performs a series of valid
+     * random moves to produce a solvable shuffled state.
+     */
     @Override
     protected void initializeGame() {
         List<SlidingPuzzlePiece> pieces = new ArrayList<>(getGridSize());
@@ -260,6 +311,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         startTime = System.currentTimeMillis();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Accepts numbered tile input, validates adjacency against the empty tile,
+     * and executes the move or reports a descriptive error.
+     */
     @Override
     protected void processUserInput() {
         OutputService outputService = getOutputService();
@@ -298,6 +355,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Validates that tiles appear in ascending order with the empty tile
+     * occupying the lower-right corner of the grid.
+     */
     @Override
     protected boolean checkWinCondition() {
         SlidingPuzzlePiece bottomRight = gameGrid.get(getRows() - 1, getCols() - 1);
@@ -321,6 +384,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Provides the player immediate feedback on invalid input attempts before
+     * giving them another chance to move.
+     */
     @Override
     protected void displayInvalidInputMessage() {
         OutputService outputService = getOutputService();
@@ -329,6 +398,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         processUserInput();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Summarizes performance metrics, updates personal records, and surfaces the
+     * player's historical leaderboard for the current difficulty.
+     */
     @Override
     protected void displayWinMessage() {
         // Clear the console (works in most terminals)
@@ -400,6 +475,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         outputService.println("");
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Draws a text-based board with border art, tile labels, and current run
+     * metrics such as moves and elapsed time.
+     */
     @Override
     protected void displayGrid() {
         OutputService outputService = getOutputService();
@@ -433,7 +514,7 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
 
         if (moveCount > 0) {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-        String currentDifficulty = getDifficultyName(getPlayer().getDifficultyLevel());
+            String currentDifficulty = getDifficultyName(getPlayer().getDifficultyLevel());
             outputService.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
                     + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
             outputService.println(getPlayer().getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
@@ -441,6 +522,13 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         }
     }
 
+    /**
+     * Parses a grid key (e.g., {@code 4x5}) into its total cell count.
+     *
+     * @param gridKey value in the format {@code rows x cols}
+     * @return product of rows and columns, or {@link Integer#MAX_VALUE} when the
+     *         key cannot be parsed
+     */
     private int parseGridArea(String gridKey) {
         String[] parts = gridKey.split("x");
         if (parts.length != 2) {

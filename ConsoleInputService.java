@@ -34,6 +34,11 @@ public class ConsoleInputService implements InputService {
         this.scanner = Objects.requireNonNull(scanner, "scanner must not be null");
     }
 
+    /**
+     * Reads the next line of user input from the underlying {@link Scanner}.
+     *
+     * @return the next line, or {@code null} if no further input is available
+     */
     @Override
     public String readLine() {
         try {
@@ -43,6 +48,10 @@ public class ConsoleInputService implements InputService {
         }
     }
 
+    /**
+     * Closes the underlying {@link Scanner} instance, releasing any associated
+     * resources.
+     */
     @Override
     public void close() {
         scanner.close();

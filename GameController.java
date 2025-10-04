@@ -155,8 +155,8 @@ public class GameController {
     /**
      * Prompts the user to decide whether to play again.
      *
-    * @param inputService  source of user responses
-    * @param outputService destination for prompt messages
+     * @param inputService  source of user responses
+     * @param outputService destination for prompt messages
      * @return {@code true} if the user wants to play again, {@code false} otherwise
      */
     private boolean promptPlayAgain(InputService inputService, OutputService outputService) {

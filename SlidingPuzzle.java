@@ -23,8 +23,16 @@
  * @assignment Assignment 1
  */
 
+/**
+ * Entry point for launching the sliding puzzle application.
+ */
 public final class SlidingPuzzle {
-    // Main method to start the game
+    /**
+     * Boots the console-based sliding puzzle game using the default
+     * input/output services.
+     *
+     * @param args ignored command-line parameters
+     */
     public static void main(String[] args) {
         SlidingPuzzleGame game = new SlidingPuzzleGame();
         game.startGame();

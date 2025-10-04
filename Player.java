@@ -130,6 +130,8 @@ public class Player {
     /**
      * Gets the player's top score for the current difficulty level.
      * 
+     * @param rows The number of rows in the grid
+     * @param cols The number of columns in the grid
      * @return The player's best score for current difficulty
      */
     public int getTopScore(int rows, int cols) {
@@ -181,6 +183,8 @@ public class Player {
      * score is better (higher).
      * 
      * @param newScore The new score to compare with the current top score
+     * @param rows     The number of rows in the grid
+     * @param cols     The number of columns in the grid
      * @return true if the top score was updated, false otherwise
      */
     public boolean updateTopScore(int newScore, int rows, int cols) {
@@ -210,6 +214,9 @@ public class Player {
 
     /**
      * Resets the player's top score for the current difficulty level.
+     *
+     * @param rows The number of rows in the grid
+     * @param cols The number of columns in the grid
      */
     public void resetTopScore(int rows, int cols) {
         resetTopScore(difficultyLevel, rows, cols);
@@ -219,6 +226,8 @@ public class Player {
      * Resets the player's top score for a specific difficulty level.
      * 
      * @param difficulty The difficulty level
+     * @param rows       The number of rows in the grid
+     * @param cols       The number of columns in the grid
      */
     public void resetTopScore(int difficulty, int rows, int cols) {
         Map<String, Integer> difficultyScores = topScores.get(difficulty);
@@ -279,6 +288,14 @@ public class Player {
         return sb.toString();
     }
 
+    /**
+     * Generates a stable key representing the supplied grid dimensions for use in
+     * score maps.
+     *
+     * @param rows number of rows in the puzzle grid
+     * @param cols number of columns in the puzzle grid
+     * @return concatenated representation in the form {@code rows x cols}
+     */
     private String toGridKey(int rows, int cols) {
         return rows + "x" + cols;
     }
