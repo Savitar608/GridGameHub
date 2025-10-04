@@ -258,7 +258,7 @@ public class Player {
      * 
      * @return The default player name
      */
-    public static String getDefaultPlayerName() {
+    private static String getDefaultPlayerName() {
         return DEFAULT_PLAYER_NAME[new Random().nextInt(DEFAULT_PLAYER_NAME.length)];
     }
 
@@ -267,7 +267,7 @@ public class Player {
      * 
      * @return The default difficulty level
      */
-    public static int getDefaultDifficultyLevel() {
+    private static int getDefaultDifficultyLevel() {
         return DEFAULT_DIFFICULTY_LEVEL;
     }
 

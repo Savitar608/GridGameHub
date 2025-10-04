@@ -152,7 +152,7 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
      *
      * @return number of shuffling iterations to execute
      */
-    protected int getShuffleMoves() {
+    private int getShuffleMoves() {
         int baseMultiplier;
         int diffLevel = getPlayer().getDifficultyLevel();
 
