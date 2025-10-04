@@ -93,10 +93,12 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         OutputService outputService = getOutputService();
         InputService inputService = getInputService();
 
-        outputService.print("Enter grid size (rows x cols) (Min " + MIN_SIZE + ", Max " + MAX_SIZE + "): ");
+        outputService.print("Enter grid size (rows x cols) (Min " + MIN_SIZE + ", Max " + MAX_SIZE
+                + ") or type 'quit' to exit: ");
         String sizeInput = inputService.readLine();
-        if (sizeInput == null) {
-            sizeInput = "";
+        if (sizeInput == null || isQuitCommand(sizeInput)) {
+            requestExit();
+            return;
         }
         String[] parts = sizeInput.trim().split("\\s*x\\s*");
 
@@ -236,6 +238,7 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         outputService.println("=========================================");
         outputService.println("    WELCOME TO THE SLIDING PUZZLE GAME!  ");
         outputService.println("=========================================");
+    outputService.println("Type 'quit' at any prompt to exit the game.");
         outputService.println("\n--- How to Play ---");
         outputService.println("1. Objective: Arrange the numbers in ascending order, from left to right, top to bottom.");
         outputService.println("   The empty space should be in the bottom-right corner when solved.");
@@ -322,10 +325,11 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         OutputService outputService = getOutputService();
         InputService inputService = getInputService();
 
-        outputService.print(getPlayer().getName() + ", which tile do you want to slide to the empty space? ");
+        outputService.print(getPlayer().getName()
+                + ", which tile do you want to slide to the empty space? (type 'quit' to exit) ");
         String input = inputService.readLine();
-        if (input == null) {
-            setGameOver(true);
+        if (input == null || isQuitCommand(input)) {
+            requestExit();
             return;
         }
         try {
@@ -394,6 +398,9 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     protected void displayInvalidInputMessage() {
         OutputService outputService = getOutputService();
         outputService.println("Invalid input. Please try again.");
+        if (isExitRequested()) {
+            return;
+        }
         displayGrid();
         processUserInput();
     }

@@ -21,8 +21,11 @@
  * @assignment Assignment 1
  */
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -46,17 +49,43 @@ public class GameController {
         game.displayWelcomeMessage();
         configurePlayer(game, inputService, outputService);
 
+        if (game.isExitRequested()) {
+            outputService.println("Exiting game. Goodbye!");
+            inputService.close();
+            return;
+        }
+
         boolean keepPlaying = true;
-        while (keepPlaying) {
+        while (keepPlaying && !game.isExitRequested()) {
             game.resetGameState();
 
             game.setSize();
-            configureDifficulty(game, inputService, outputService);
-            game.initializeGame();
+            if (game.isExitRequested()) {
+                break;
+            }
 
-            while (!game.isGameOver()) {
+            configureDifficulty(game, inputService, outputService);
+            if (game.isExitRequested()) {
+                break;
+            }
+
+            game.initializeGame();
+            if (game.isExitRequested()) {
+                break;
+            }
+
+            game.displayGrid();
+            if (!presentPreGameOptions(game, inputService, outputService)) {
+                break;
+            }
+
+            while (!game.isExitRequested() && !game.isGameOver()) {
                 game.displayGrid();
                 game.processUserInput();
+
+                if (game.isExitRequested()) {
+                    break;
+                }
 
                 if (game.isGameOver()) {
                     break;
@@ -67,10 +96,18 @@ public class GameController {
                 }
             }
 
+            if (game.isExitRequested()) {
+                break;
+            }
+
             game.displayGrid();
             game.displayWinMessage();
 
-            keepPlaying = promptPlayAgain(inputService, outputService);
+            if (game.isExitRequested()) {
+                break;
+            }
+
+            keepPlaying = promptPlayAgain(game, inputService, outputService);
         }
 
         outputService.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
@@ -86,7 +123,10 @@ public class GameController {
      */
     private void configurePlayer(GridGame<?> game, InputService inputService, OutputService outputService) {
         Player player = game.getPlayer();
-        player.promptForName(inputService, outputService);
+        boolean continueGame = player.promptForName(inputService, outputService);
+        if (!continueGame) {
+            game.requestExit();
+        }
     }
 
     /**
@@ -119,7 +159,15 @@ public class GameController {
 
         outputService.println("Hey " + player.getName() + ", choose your difficulty level: " + optionsBuilder);
         outputService.println("Note: The difficulty level increases exponentially with grid size");
+        outputService.println("Type 'quit' at any prompt to exit the game.");
         String chosenLevel = inputService.readLine();
+
+        if (chosenLevel == null || game.isQuitCommand(chosenLevel)) {
+            game.requestExit();
+            return;
+        }
+
+        chosenLevel = chosenLevel.trim();
 
         int defaultLevel = difficultyManager.getMinDifficultyLevel();
         int level;
@@ -159,15 +207,20 @@ public class GameController {
      * @param outputService destination for prompt messages
      * @return {@code true} if the user wants to play again, {@code false} otherwise
      */
-    private boolean promptPlayAgain(InputService inputService, OutputService outputService) {
+    private boolean promptPlayAgain(GridGame<?> game, InputService inputService, OutputService outputService) {
         while (true) {
-            outputService.println("Would you like to play again? (yes/no)");
+            outputService.println("Would you like to play again? (yes/no/quit)");
             String response = inputService.readLine();
             if (response == null) {
                 return false;
             }
 
             response = response.trim().toLowerCase(Locale.ROOT);
+            if (game.isQuitCommand(response)) {
+                game.requestExit();
+                return false;
+            }
+
             switch (response) {
                 case "yes":
                 case "y":
@@ -176,8 +229,99 @@ public class GameController {
                 case "n":
                     return false;
                 default:
-                    outputService.println("Please respond with 'yes' or 'no'.");
+                    outputService.println("Please respond with 'yes', 'no', or 'quit'.");
             }
+        }
+    }
+
+    private boolean presentPreGameOptions(GridGame<?> game, InputService inputService, OutputService outputService) {
+        while (!game.isExitRequested()) {
+            outputService.println("Choose an option: [start] Begin game, [regen] Regenerate board, [scores] View top scores, [quit] Exit");
+            String choice = inputService.readLine();
+
+            if (choice == null || game.isQuitCommand(choice)) {
+                game.requestExit();
+                return false;
+            }
+
+            String normalized = choice.trim().toLowerCase(Locale.ROOT);
+            switch (normalized) {
+                case "start":
+                case "s":
+                    return true;
+                case "regen":
+                case "r":
+                case "regenerate":
+                    game.initializeGame();
+                    if (game.isExitRequested()) {
+                        return false;
+                    }
+                    outputService.println("Board regenerated.");
+                    game.displayGrid();
+                    break;
+                case "scores":
+                case "score":
+                case "top":
+                    displayPlayerTopScores(game, outputService);
+                    break;
+                default:
+                    outputService.println("Please choose 'start', 'regen', 'scores', or 'quit'.");
+            }
+        }
+        return false;
+    }
+
+    private void displayPlayerTopScores(GridGame<?> game, OutputService outputService) {
+        Player player = game.getPlayer();
+        outputService.println("");
+        outputService.println("=== YOUR TOP SCORES ===");
+
+        Map<Integer, Map<String, Integer>> allScores = player.getAllTopScores();
+        if (allScores.isEmpty()) {
+            outputService.println("No scores recorded yet.");
+        } else {
+            List<Integer> levels = new ArrayList<>(allScores.keySet());
+            Collections.sort(levels);
+            for (int level : levels) {
+                Map<String, Integer> gridScores = allScores.get(level);
+                if (gridScores == null || gridScores.isEmpty()) {
+                    continue;
+                }
+
+                String difficultyName = game.getDifficultyManager().getDifficultyName(level);
+                outputService.println(difficultyName + " (Level " + level + "):");
+
+                List<String> gridSizes = new ArrayList<>(gridScores.keySet());
+                gridSizes.sort((a, b) -> {
+                    int areaA = parseGridArea(a);
+                    int areaB = parseGridArea(b);
+                    if (areaA != areaB) {
+                        return Integer.compare(areaA, areaB);
+                    }
+                    return a.compareTo(b);
+                });
+
+                for (String gridSize : gridSizes) {
+                    outputService.println("  " + gridSize + " -> " + gridScores.get(gridSize));
+                }
+            }
+        }
+
+        outputService.println("=======================");
+        outputService.println("");
+    }
+
+    private int parseGridArea(String gridKey) {
+        String[] parts = gridKey.split("x");
+        if (parts.length != 2) {
+            return Integer.MAX_VALUE;
+        }
+        try {
+            int rows = Integer.parseInt(parts[0]);
+            int cols = Integer.parseInt(parts[1]);
+            return rows * cols;
+        } catch (NumberFormatException ex) {
+            return Integer.MAX_VALUE;
         }
     }
 }

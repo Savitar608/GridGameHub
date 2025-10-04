@@ -35,6 +35,9 @@ public abstract class GridGame<T> {
     private final InputService inputService;
     private final OutputService outputService;
     private final GameController gameController;
+        private boolean exitRequested;
+
+        protected static final String QUIT_KEYWORD = "quit";
 
     /**
      * Constructor to initialize the game.
@@ -68,6 +71,7 @@ public abstract class GridGame<T> {
 
         initializeDefaultDifficultyLevels();
         this.gameController = new GameController();
+        this.exitRequested = false;
     }
 
     /**
@@ -172,6 +176,19 @@ public abstract class GridGame<T> {
     public boolean isGameOver() {
         return isGameOver;
     }
+
+        public boolean isExitRequested() {
+            return exitRequested;
+        }
+
+        protected void requestExit() {
+            this.exitRequested = true;
+            this.isGameOver = true;
+        }
+
+        protected boolean isQuitCommand(String input) {
+            return input != null && QUIT_KEYWORD.equalsIgnoreCase(input.trim());
+        }
 
     /**
      * Provides access to the configured input service.

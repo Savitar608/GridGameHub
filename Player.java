@@ -88,20 +88,33 @@ public class Player {
      *
      * @param inputService  input source for the player's response
      * @param outputService destination for prompt and feedback messages
+    * @return {@code true} if gameplay should continue, {@code false} when the
+    *         player opts to quit
      */
-    public void promptForName(InputService inputService, OutputService outputService) {
+    public boolean promptForName(InputService inputService, OutputService outputService) {
         Objects.requireNonNull(inputService, "inputService must not be null");
         Objects.requireNonNull(outputService, "outputService must not be null");
 
-        outputService.print("Enter player name: ");
+        outputService.print("Enter player name (type 'quit' to exit): ");
         String playerName = inputService.readLine();
 
-        if (playerName != null && !playerName.trim().isEmpty()) {
-            setName(playerName.trim());
+        if (playerName == null) {
+            return false;
+        }
+
+        String trimmedName = playerName.trim();
+        if ("quit".equalsIgnoreCase(trimmedName)) {
+            return false;
+        }
+
+        if (!trimmedName.isEmpty()) {
+            setName(trimmedName);
         } else {
             outputService.println("Warning: Invalid name provided. Setting default name.");
             setName(DEFAULT_PLAYER_NAME);
         }
+
+        return true;
     }
 
     /**
