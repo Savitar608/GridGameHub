@@ -1,3 +1,27 @@
+/**
+ * CS611 - Object Oriented Design
+ * Assignment 1 - Sliding Puzzle Game
+ * 
+ * File: Player.java
+ * Description: Player class for managing player information including name,
+ *              difficulty level preferences, and top scores tracking.
+ *              Supports extensible difficulty levels and maintains separate
+ *              top scores for each difficulty level.
+ * 
+ * Features:
+ * - Player name management with validation
+ * - Extensible difficulty level support (any positive integer)
+ * - Top score tracking per difficulty level using Map structure
+ * - Utility methods for score management and player information display
+ * - Default value handling for robustness
+ * 
+ * @author Adithya Lnu
+ * @version 2.0
+ * @date October 4, 2025
+ * @course CS611 - Object Oriented Design
+ * @assignment Assignment 1
+ */
+
 import java.util.*;
 
 /**
