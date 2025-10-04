@@ -15,11 +15,7 @@ abstract class GridGame<T> {
     protected T[][] grid;
     protected boolean isGameOver;
     protected Scanner scanner;
-    protected String playerName;
-    protected int difficultyLevel;
-
-    private static final String DEFAULT_PLAYER_NAME = "Master Chief";
-    private static final int DEFAULT_DIFFICULTY_LEVEL = 1; // Easy
+    protected Player player;
 
     private static final Map<Integer, String> difficultyLevels;
     static {
@@ -55,8 +51,7 @@ abstract class GridGame<T> {
         this.grid = tempGrid;
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
-        this.playerName = DEFAULT_PLAYER_NAME; // Can be set later if needed. Setting a default name.
-        this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL; // Default difficulty level
+        this.player = new Player(); // Initialize with default values
     }
 
     /**
@@ -106,11 +101,11 @@ abstract class GridGame<T> {
         String playerName = scanner.nextLine();
 
         if (playerName != null && !playerName.trim().isEmpty()) {
-            this.playerName = playerName.trim();
+            this.player.setName(playerName.trim());
         } else {
             // setting a default name and displaying a warning
             System.out.println("Warning: Invalid name provided. Setting default name.");
-            this.playerName = DEFAULT_PLAYER_NAME; // Default name
+            this.player.setName(Player.getDefaultPlayerName()); // Default name
         }
     }
 
@@ -120,8 +115,8 @@ abstract class GridGame<T> {
      * @return the player's name.
      */
     protected String getPlayerInfo() {
-        // Return the player's name or a default if not set
-        return playerName != null ? playerName : DEFAULT_PLAYER_NAME;
+        // Return the player's name
+        return player.getName();
     }
 
     /**
@@ -139,26 +134,27 @@ abstract class GridGame<T> {
         System.out.println("Note: The difficulty level increases exponentially with grid size");
         String chosenLevel = scanner.nextLine();
 
+        int level;
         try {
             // Parse the input to an integer
-            int level = Integer.parseInt(chosenLevel);
-            this.difficultyLevel = level;
+            level = Integer.parseInt(chosenLevel);
         } catch (Exception e) {
             // If parsing fails, default to Easy
             System.out.println("Invalid input. Defaulting to Easy.");
-            this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL;
+            level = Player.getDefaultDifficultyLevel();
         }
 
-        // Validate the level
-        // If invalid, default to Easy
-        if (this.difficultyLevel < 1 || this.difficultyLevel > 3) {
+        // Set the level (Player class will validate and default if invalid)
+        player.setDifficultyLevel(level);
+        
+        // Check if the level was changed due to validation
+        if (level != player.getDifficultyLevel() && (level < 1 || level > 3)) {
             System.out.println("Invalid level. Defaulting to Easy.");
-            this.difficultyLevel = DEFAULT_DIFFICULTY_LEVEL;
         }
 
-        System.out.println("Difficulty set to: " + difficultyLevels.get(difficultyLevel));
+        System.out.println("Difficulty set to: " + difficultyLevels.get(player.getDifficultyLevel()));
 
-        if (this.difficultyLevel == 3) {
+        if (player.getDifficultyLevel() == 3) {
             System.out.println("Warning: Hard mode can be quite challenging!");
             System.out.println("Tip: Plan your moves ahead and try to visualize the solution.");
         }
@@ -218,6 +214,11 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     // Position of the empty cell
     private int emptyRow;
     private int emptyCol;
+    
+    // Score tracking
+    private int currentScore;
+    private int moveCount;
+    private long startTime;
 
     // Default values
     private static final int DEFAULT_ROWS = 3; // Default rows
@@ -299,7 +300,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      */
     protected int getShuffleMoves() {
         int baseMultiplier; // Base multiplier for shuffle moves
-        switch (difficultyLevel) {
+        switch (player.getDifficultyLevel()) {
             case 1: // Easy
                 baseMultiplier = 3;
                 break;
@@ -319,6 +320,30 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
         // Calculate shuffle moves using a custom formula
         return (int) (baseMultiplier * Math.pow(gridSize, exponent));
+    }
+    
+    /**
+     * Calculates the current score based on moves, time, difficulty, and grid size.
+     * Higher difficulty and larger grids give more base points.
+     * Fewer moves and less time result in higher scores.
+     *
+     * @return The calculated score
+     */
+    private int calculateScore() {
+        if (moveCount == 0) return 0;
+        
+        long elapsedTimeSeconds = (System.currentTimeMillis() - startTime) / 1000;
+        if (elapsedTimeSeconds == 0) elapsedTimeSeconds = 1; // Avoid division by zero
+        
+        // Base score increases with difficulty and grid size
+        int baseScore = player.getDifficultyLevel() * (rows * cols) * 100;
+        
+        // Efficiency bonus: fewer moves and less time = higher score
+        double moveEfficiency = Math.max(0.1, 1.0 / moveCount);
+        double timeEfficiency = Math.max(0.1, 1.0 / elapsedTimeSeconds);
+        
+        // Calculate final score
+        return (int) (baseScore * moveEfficiency * timeEfficiency * 10);
     }
 
     /**
@@ -384,6 +409,10 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         // Update the position of the empty cell
         emptyRow = row;
         emptyCol = col;
+        
+        // Update score tracking
+        moveCount++;
+        currentScore = calculateScore();
     }
 
     @Override
@@ -424,6 +453,11 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             }
         }
         isGameOver = false; // Reset game over status
+        
+        // Initialize score tracking
+        currentScore = 0;
+        moveCount = 0;
+        startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -497,8 +531,36 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         System.out.print("\033[H\033[2J");
         System.out.flush();
 
+        // Calculate final score
+        int finalScore = calculateScore();
+        long totalTime = (System.currentTimeMillis() - startTime) / 1000;
+        
         // Display the final grid and a congratulatory message
         System.out.println("Congratulations " + getPlayerInfo() + "! You've solved the puzzle! 🎉");
+        System.out.println();
+        System.out.println("=== GAME STATISTICS ===");
+        System.out.println("Final Score: " + finalScore);
+        System.out.println("Total Moves: " + moveCount);
+        System.out.println("Total Time: " + totalTime + " seconds");
+        System.out.println("Difficulty: " + (player.getDifficultyLevel() == 1 ? "Easy" : 
+                                          player.getDifficultyLevel() == 2 ? "Medium" : "Hard"));
+        System.out.println("Grid Size: " + rows + "x" + cols);
+        
+        // Check and update top score
+        int previousTopScore = player.getTopScore();
+        boolean newRecord = player.updateTopScore(finalScore);
+        if (newRecord) {
+            System.out.println();
+            System.out.println("🏆 NEW PERSONAL RECORD! 🏆");
+            if (previousTopScore > 0) {
+                System.out.println("Previous best: " + previousTopScore + " (improved by " + (finalScore - previousTopScore) + ")");
+            } else {
+                System.out.println("This is your first completed game!");
+            }
+        }
+        System.out.println("Your Top Score: " + player.getTopScore());
+        System.out.println("=======================");
+        System.out.println();
 
         // Ask if the player wants to play again
         System.out.println("Would you like to play again? (yes/no)");
@@ -544,6 +606,13 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         }
 
         System.out.println(sb.toString());
+        
+        // Display game statistics
+        if (moveCount > 0) {
+            long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+            System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore);
+            System.out.println(player.getName() + "'s Top Score: " + player.getTopScore());
+        }
     }
 }
 
