@@ -63,7 +63,7 @@ public class Player {
         if (name != null && !name.trim().isEmpty()) {
             this.name = name.trim();
         } else {
-            this.name = DEFAULT_PLAYER_NAME;
+            this.name = getDefaultPlayerName();
         }
     }
 
