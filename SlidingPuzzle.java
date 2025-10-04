@@ -42,6 +42,7 @@ abstract class GridGame<T> {
     protected Map<Integer, String> difficultyLevels;
     protected int minDifficultyLevel;
     protected int maxDifficultyLevel;
+    private final GameController gameController;
 
     /**
      * Constructor to initialize the game.
@@ -59,6 +60,14 @@ abstract class GridGame<T> {
 
         // Initialize default difficulty levels (can be overridden by subclasses)
         initializeDefaultDifficultyLevels();
+        this.gameController = new GameController();
+    }
+
+    /**
+     * Starts the game by delegating to the internal controller.
+     */
+    public void startGame() {
+        gameController.run(this);
     }
 
     /**
@@ -159,38 +168,37 @@ abstract class GridGame<T> {
     }
 
     /**
-     * Starts the game by displaying the welcome message and setting the player
-     * name.
+     * Resets the game state by clearing the game over flag.
      */
-    public void startGame() {
-        this.isGameOver = false; // Reset game over status
-        displayWelcomeMessage();
-        setPlayerName();
-
-        // Start the main game loop
-        play();
+    public void resetGameState() {
+        this.isGameOver = false;
     }
 
     /**
-     * The main public method to start and run the game.
+     * Updates the game over flag.
+     *
+     * @param gameOver true if the game has ended, false otherwise
      */
-    protected void play() {
-        setSize();
-        setDifficultyLevel();
-        initializeGame();
+    public void setGameOver(boolean gameOver) {
+        this.isGameOver = gameOver;
+    }
 
-        // Looping over the game until it's over
-        while (!isGameOver) {
-            displayGrid();
-            processUserInput();
+    /**
+     * Indicates whether the game is currently over.
+     *
+     * @return true if the game has ended, false otherwise
+     */
+    public boolean isGameOver() {
+        return isGameOver;
+    }
 
-            // Check for win condition after each move
-            // If the game is won, set isGameOver to true and break the loop
-            isGameOver = checkWinCondition();
-        }
-
-        displayGrid();
-        displayWinMessage();
+    /**
+     * Provides access to the input scanner for external controllers.
+     *
+     * @return the shared scanner instance
+     */
+    protected Scanner getInputScanner() {
+        return scanner;
     }
 
     /* Abstract Methods to be Implemented by Child Classes */
@@ -273,7 +281,7 @@ abstract class GridGame<T> {
         System.out.println("Difficulty set to: " + getDifficultyName(player.getDifficultyLevel()));
 
         // Show current top score for this difficulty
-        int currentTopScore = player.getTopScore();
+            int currentTopScore = player.getTopScore(getRows(), getCols());
         if (currentTopScore > 0) {
             System.out.println("Your current top score for this difficulty: " + currentTopScore);
         } else {
@@ -702,8 +710,8 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         System.out.println("Grid Size: " + getRows() + "x" + getCols());
 
         // Check and update top score
-        int previousTopScore = player.getTopScore();
-        boolean newRecord = player.updateTopScore(finalScore);
+        int previousTopScore = player.getTopScore(getRows(), getCols());
+        boolean newRecord = player.updateTopScore(finalScore, getRows(), getCols());
         if (newRecord) {
             System.out.println();
             System.out.println("🏆 NEW PERSONAL RECORD! 🏆");
@@ -716,7 +724,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         }
 
         // Display all top scores
-        Map<Integer, Integer> allScores = player.getAllTopScores();
+        Map<Integer, Map<String, Integer>> allScores = player.getAllTopScores();
         System.out.println();
         System.out.println("=== YOUR TOP SCORES ===");
         if (allScores.isEmpty()) {
@@ -725,22 +733,29 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             List<Integer> levels = new ArrayList<>(allScores.keySet());
             Collections.sort(levels);
             for (int level : levels) {
-                System.out.println(getDifficultyName(level) + " (Level " + level + "): " + allScores.get(level));
+                Map<String, Integer> gridScores = allScores.get(level);
+                if (gridScores == null || gridScores.isEmpty()) {
+                    continue;
+                }
+
+                System.out.println(getDifficultyName(level) + " (Level " + level + "):");
+                List<String> gridSizes = new ArrayList<>(gridScores.keySet());
+                gridSizes.sort((a, b) -> {
+                    int areaA = parseGridArea(a);
+                    int areaB = parseGridArea(b);
+                    if (areaA != areaB) {
+                        return Integer.compare(areaA, areaB);
+                    }
+                    return a.compareTo(b);
+                });
+
+                for (String gridSize : gridSizes) {
+                    System.out.println("  " + gridSize + " -> " + gridScores.get(gridSize));
+                }
             }
         }
         System.out.println("=======================");
         System.out.println();
-
-        // Ask if the player wants to play again
-        System.out.println("Would you like to play again? (yes/no)");
-        String response = scanner.nextLine().trim().toLowerCase();
-        if (response.equals("yes") || response.equals("y")) {
-            play(); // Restart the game
-            return;
-        }
-
-        System.out.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
-        scanner.close();
     }
 
     @Override
@@ -782,8 +797,22 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
             String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
             System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
-                    + " | Difficulty: " + currentDifficulty);
-            System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + "): " + player.getTopScore());
+                + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
+            System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
+                + getCols() + "): " + player.getTopScore(getRows(), getCols()));
+        }
+    }
+    private int parseGridArea(String gridKey) {
+        String[] parts = gridKey.split("x");
+        if (parts.length != 2) {
+            return Integer.MAX_VALUE;
+        }
+        try {
+            int rows = Integer.parseInt(parts[0]);
+            int cols = Integer.parseInt(parts[1]);
+            return rows * cols;
+        } catch (NumberFormatException ex) {
+            return Integer.MAX_VALUE;
         }
     }
 }
