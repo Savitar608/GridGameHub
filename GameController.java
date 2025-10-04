@@ -21,6 +21,7 @@
  * @assignment Assignment 1
  */
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Scanner;
@@ -43,14 +44,14 @@ public class GameController {
 
         game.resetGameState();
         game.displayWelcomeMessage();
-        game.setPlayerName();
+    configurePlayer(game);
 
         boolean keepPlaying = true;
         while (keepPlaying) {
             game.resetGameState();
 
             game.setSize();
-            game.setDifficultyLevel();
+            configureDifficulty(game);
             game.initializeGame();
 
             while (!game.isGameOver()) {
@@ -74,6 +75,67 @@ public class GameController {
 
         System.out.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
         scanner.close();
+    }
+
+    private void configurePlayer(GridGame<?> game) {
+        Player player = game.getPlayer();
+        Scanner scanner = game.getInputScanner();
+        player.promptForName(scanner);
+    }
+
+    private void configureDifficulty(GridGame<?> game) {
+        DifficultyManager difficultyManager = game.getDifficultyManager();
+        List<Integer> levels = difficultyManager.getSortedDifficultyLevels();
+        if (levels.isEmpty()) {
+            throw new IllegalStateException("No difficulty levels configured.");
+        }
+
+        Scanner scanner = game.getInputScanner();
+        Player player = game.getPlayer();
+
+        StringBuilder optionsBuilder = new StringBuilder();
+        for (int i = 0; i < levels.size(); i++) {
+            int level = levels.get(i);
+            optionsBuilder.append(level).append(" (")
+                    .append(difficultyManager.getDifficultyName(level))
+                    .append(")");
+            if (i < levels.size() - 1) {
+                optionsBuilder.append(", ");
+            }
+        }
+
+        System.out.println("Hey " + player.getName() + ", choose your difficulty level: " + optionsBuilder);
+        System.out.println("Note: The difficulty level increases exponentially with grid size");
+        String chosenLevel = scanner.nextLine();
+
+        int defaultLevel = difficultyManager.getMinDifficultyLevel();
+        int level;
+        try {
+            level = Integer.parseInt(chosenLevel);
+        } catch (Exception e) {
+            System.out.println("Invalid input. Defaulting to " + difficultyManager.getDifficultyName(defaultLevel) + ".");
+            level = defaultLevel;
+        }
+
+        player.setDifficultyLevel(level);
+
+        if (!difficultyManager.isValidDifficultyLevel(level)) {
+            System.out
+                    .println("Invalid level. Defaulting to " + difficultyManager.getDifficultyName(defaultLevel) + ".");
+            player.setDifficultyLevel(defaultLevel);
+        }
+
+        System.out.println("Difficulty set to: "
+                + difficultyManager.getDifficultyName(player.getDifficultyLevel()));
+
+        int currentTopScore = player.getTopScore(game.getRows(), game.getCols());
+        if (currentTopScore > 0) {
+            System.out.println("Your current top score for this difficulty: " + currentTopScore);
+        } else {
+            System.out.println("No previous score for this difficulty level.");
+        }
+
+        difficultyManager.displayDifficultyMessage(player.getDifficultyLevel());
     }
 
     /**

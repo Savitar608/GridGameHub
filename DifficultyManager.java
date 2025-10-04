@@ -114,6 +114,28 @@ public class DifficultyManager {
     }
 
     /**
+     * Displays a difficulty-specific message to the player based on the level
+     * selected.
+     * 
+     * @param difficultyLevel the level for which to display the message
+     */
+    public void displayDifficultyMessage(int difficultyLevel) {
+        String difficultyName = getDifficultyName(difficultyLevel);
+
+        if (difficultyLevel >= 4) {
+            System.out.println("🔥 EXTREME DIFFICULTY ACTIVATED! 🔥");
+            System.out.println("Warning: " + difficultyName + " mode is for seasoned puzzle masters!");
+            System.out.println(
+                    "Tip: Take your time and think several moves ahead. Consider using pen and paper to track your strategy.");
+        } else if (difficultyLevel == 3) {
+            System.out.println("Warning: " + difficultyName + " mode can be quite challenging!");
+            System.out.println("Tip: Plan your moves ahead and try to visualize the solution.");
+        } else if (difficultyLevel == 1) {
+            System.out.println("Perfect for beginners! Take your time to learn the game mechanics.");
+        }
+    }
+
+    /**
      * Returns a defensive copy of the current difficulty mapping.
      *
      * @return copy of level-to-name map

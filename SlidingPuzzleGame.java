@@ -232,7 +232,7 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void processUserInput() {
-        System.out.print(getPlayerInfo() + ", which tile do you want to slide to the empty space? ");
+    System.out.print(getPlayer().getName() + ", which tile do you want to slide to the empty space? ");
         String input = scanner.nextLine();
         try {
             int moveTile = Integer.parseInt(input);
@@ -289,13 +289,14 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void displayWinMessage() {
+        // Clear the console (works in most terminals)
         System.out.print("\033[H\033[2J");
         System.out.flush();
 
         int finalScore = calculateScore();
         long totalTime = (System.currentTimeMillis() - startTime) / 1000;
 
-        System.out.println("Congratulations " + getPlayerInfo() + "! You've solved the puzzle! 🎉");
+    System.out.println("Congratulations " + getPlayer().getName() + "! You've solved the puzzle! 🎉");
         System.out.println();
         System.out.println("=== GAME STATISTICS ===");
         System.out.println("Final Score: " + finalScore);
@@ -388,8 +389,8 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
             String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
             System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
                     + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
-            System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
-                    + getCols() + "): " + player.getTopScore(getRows(), getCols()));
+        System.out.println(getPlayer().getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
+            + getCols() + "): " + getPlayer().getTopScore(getRows(), getCols()));
         }
     }
 

@@ -24,6 +24,7 @@
  */
 
 import java.util.*;
+import java.util.Objects;
 
 /**
  * Represents a player in the game with their name and difficulty level
@@ -79,6 +80,26 @@ public class Player {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Prompts the player for a name using the provided scanner, applying default
+     * handling when necessary.
+     * 
+     * @param scanner input source for the player's response
+     */
+    public void promptForName(Scanner scanner) {
+        Objects.requireNonNull(scanner, "scanner must not be null");
+
+        System.out.print("Enter player name: ");
+        String playerName = scanner.nextLine();
+
+        if (playerName != null && !playerName.trim().isEmpty()) {
+            setName(playerName.trim());
+        } else {
+            System.out.println("Warning: Invalid name provided. Setting default name.");
+            setName(DEFAULT_PLAYER_NAME);
+        }
     }
 
     /**

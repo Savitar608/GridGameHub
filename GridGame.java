@@ -20,7 +20,6 @@
  * @assignment Assignment 1
  */
 
-import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -111,87 +110,17 @@ public abstract class GridGame<T> {
         return scanner;
     }
 
+    public Player getPlayer() {
+        return player;
+    }
+
+    public DifficultyManager getDifficultyManager() {
+        return difficultyManager;
+    }
+
     protected abstract void validateSize();
 
-    protected void setPlayerName() {
-        System.out.print("Enter player name: ");
-        String playerName = scanner.nextLine();
-
-        if (playerName != null && !playerName.trim().isEmpty()) {
-            this.player.setName(playerName.trim());
-        } else {
-            System.out.println("Warning: Invalid name provided. Setting default name.");
-            this.player.setName(Player.getDefaultPlayerName());
-        }
-    }
-
-    protected String getPlayerInfo() {
-        return player.getName();
-    }
-
     protected abstract void setSize();
-
-    protected void setDifficultyLevel() {
-        StringBuilder optionsBuilder = new StringBuilder();
-        List<Integer> levels = difficultyManager.getSortedDifficultyLevels();
-        if (levels.isEmpty()) {
-            throw new IllegalStateException("No difficulty levels configured.");
-        }
-
-        for (int i = 0; i < levels.size(); i++) {
-            int level = levels.get(i);
-            optionsBuilder.append(level).append(" (").append(difficultyManager.getDifficultyName(level)).append(")");
-            if (i < levels.size() - 1) {
-                optionsBuilder.append(", ");
-            }
-        }
-
-        System.out.println("Hey " + getPlayerInfo() + ", choose your difficulty level: " + optionsBuilder);
-        System.out.println("Note: The difficulty level increases exponentially with grid size");
-        String chosenLevel = scanner.nextLine();
-
-        int defaultLevel = difficultyManager.getMinDifficultyLevel();
-        int level;
-        try {
-            level = Integer.parseInt(chosenLevel);
-        } catch (Exception e) {
-            System.out.println("Invalid input. Defaulting to " + getDifficultyName(defaultLevel) + ".");
-            level = defaultLevel;
-        }
-
-        player.setDifficultyLevel(level);
-
-        if (!isValidDifficultyLevel(level)) {
-            System.out.println("Invalid level. Defaulting to " + getDifficultyName(defaultLevel) + ".");
-            player.setDifficultyLevel(defaultLevel);
-        }
-
-        System.out.println("Difficulty set to: " + getDifficultyName(player.getDifficultyLevel()));
-
-        int currentTopScore = player.getTopScore(getRows(), getCols());
-        if (currentTopScore > 0) {
-            System.out.println("Your current top score for this difficulty: " + currentTopScore);
-        } else {
-            System.out.println("No previous score for this difficulty level.");
-        }
-
-        showDifficultySpecificMessage(player.getDifficultyLevel());
-    }
-
-    protected void showDifficultySpecificMessage(int difficultyLevel) {
-        if (difficultyLevel >= 4) {
-            System.out.println("🔥 EXTREME DIFFICULTY ACTIVATED! 🔥");
-            System.out.println(
-                    "Warning: " + getDifficultyName(difficultyLevel) + " mode is for seasoned puzzle masters!");
-            System.out.println(
-                    "Tip: Take your time and think several moves ahead. Consider using pen and paper to track your strategy.");
-        } else if (difficultyLevel == 3) {
-            System.out.println("Warning: " + getDifficultyName(difficultyLevel) + " mode can be quite challenging!");
-            System.out.println("Tip: Plan your moves ahead and try to visualize the solution.");
-        } else if (difficultyLevel == 1) {
-            System.out.println("Perfect for beginners! Take your time to learn the game mechanics.");
-        }
-    }
 
     protected abstract void displayWelcomeMessage();
 
