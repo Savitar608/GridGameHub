@@ -24,7 +24,6 @@
  */
 
 import java.util.*;
-import java.lang.reflect.Array;
 
 /**
  * An abstract base class for grid-based terminal games.
@@ -35,9 +34,7 @@ import java.lang.reflect.Array;
  * @param <T> The type of elements stored in the grid.
  */
 abstract class GridGame<T> {
-    protected int rows;
-    protected int cols;
-    protected T[][] grid;
+    protected Grid<T> gameGrid;
     protected boolean isGameOver;
     protected Scanner scanner;
     protected Player player;
@@ -48,32 +45,63 @@ abstract class GridGame<T> {
     /**
      * Constructor to initialize the game.
      *
+     * @param componentType The class type of grid elements
      * @param rows The number of rows in the grid.
      * @param cols The number of columns in the grid.
      */
     public GridGame(Class<T> componentType, int rows, int cols) {
-        if (rows < 1 || cols < 1) {
-            throw new IllegalArgumentException("Row and column sizes must be positive integers.");
-        }
-
-        @SuppressWarnings("unchecked")
-        // Create a 2D generic array properly using reflection
-        // Spent a lot of time figuring this out
-        T[][] tempGrid = (T[][]) Array.newInstance(componentType, rows, 0);
-        for (int i = 0; i < rows; i++) {
-            tempGrid[i] = (T[]) Array.newInstance(componentType, cols);
-        }
-
-        // Initialize the grid and game state
-        this.rows = rows;
-        this.cols = cols;
-        this.grid = tempGrid;
+        // Initialize the grid using the Grid class
+        this.gameGrid = new Grid<>(componentType, rows, cols);
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
         this.player = new Player(); // Initialize with default values
         
         // Initialize default difficulty levels (can be overridden by subclasses)
         initializeDefaultDifficultyLevels();
+    }
+    
+    /**
+     * Gets the number of rows in the grid.
+     * @return The number of rows
+     */
+    protected int getRows() {
+        return gameGrid.getRows();
+    }
+    
+    /**
+     * Gets the number of columns in the grid.
+     * @return The number of columns
+     */
+    protected int getCols() {
+        return gameGrid.getCols();
+    }
+    
+    /**
+     * Gets the grid size (total cells).
+     * @return The total number of cells
+     */
+    protected int getGridSize() {
+        return gameGrid.getSize();
+    }
+    
+    /**
+     * Gets an element from the grid.
+     * @param row The row index
+     * @param col The column index
+     * @return The element at the specified position
+     */
+    protected T getGridElement(int row, int col) {
+        return gameGrid.get(row, col);
+    }
+    
+    /**
+     * Sets an element in the grid.
+     * @param row The row index
+     * @param col The column index
+     * @param value The value to set
+     */
+    protected void setGridElement(int row, int col, T value) {
+        gameGrid.set(row, col, value);
     }
     
     /**
@@ -343,7 +371,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      * Validates the size of the grid.
      */
     protected void validateSize() {
-        if (rows < MIN_SIZE || cols < MIN_SIZE) {
+        if (getRows() < MIN_SIZE || getCols() < MIN_SIZE) {
             throw new IllegalArgumentException("Grid size must be at least " + MIN_SIZE + "x" + MIN_SIZE);
         }
     }
@@ -362,7 +390,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                 int cols = Integer.parseInt(parts[1]);
 
                 // if the size is the default size, skip reinitialization
-                if (rows == this.rows && cols == this.cols) {
+                if (rows == getRows() && cols == getCols()) {
                     return;
                 }
 
@@ -373,16 +401,11 @@ class SlidingPuzzleGame extends GridGame<Integer> {
                     cols = DEFAULT_COLS;
                 }
 
-                // Reinitialize the grid with the new size using Integer array directly
-                // Set the new size
-                this.rows = rows;
-                this.cols = cols;
-
-                // Reinitialize the grid with the new size using Integer array directly
-                this.grid = new Integer[rows][cols];
+                // Reinitialize the grid with the new size
+                gameGrid.resize(rows, cols);
 
                 // Adjust border and cell format based on grid size
-                if (rows * cols < 100) {
+                if (getGridSize() < 100) {
                     horizontalBorder = "--+";
                     emptyCell = "  ";
                     cellFormat = "%2d";
@@ -433,7 +456,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         }
 
         double exponent = 1.5; // Exponent to scale with grid size
-        double gridSize = rows * cols;
+        double gridSize = getGridSize();
 
         // Calculate shuffle moves using a custom formula
         return (int) (baseMultiplier * Math.pow(gridSize, exponent));
@@ -453,7 +476,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         if (elapsedTimeSeconds == 0) elapsedTimeSeconds = 1; // Avoid division by zero
         
         // Base score increases with difficulty and grid size
-        int baseScore = player.getDifficultyLevel() * (rows * cols) * 100;
+        int baseScore = player.getDifficultyLevel() * getGridSize() * 100;
         
         // Efficiency bonus: fewer moves and less time = higher score
         double moveEfficiency = Math.max(0.1, 1.0 / moveCount);
@@ -474,11 +497,11 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         // Check all four possible directions (up, down, left, right)
         if (emptyRow > 0)
             moves.add(new int[] { emptyRow - 1, emptyCol }); // Up
-        if (emptyRow < rows - 1)
+        if (emptyRow < getRows() - 1)
             moves.add(new int[] { emptyRow + 1, emptyCol }); // Down
         if (emptyCol > 0)
             moves.add(new int[] { emptyRow, emptyCol - 1 }); // Left
-        if (emptyCol < cols - 1)
+        if (emptyCol < getCols() - 1)
             moves.add(new int[] { emptyRow, emptyCol + 1 }); // Right
 
         return moves;
@@ -524,9 +547,11 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void makeMove(int row, int col) {
-        // Swap the empty cell with the selected cell
-        grid[emptyRow][emptyCol] = grid[row][col];
-        grid[row][col] = 0; // 0 represents the empty cell
+        // Swap the empty cell with the selected cell using Grid methods
+        Integer tileValue = getGridElement(row, col);
+        
+        setGridElement(emptyRow, emptyCol, tileValue);
+        setGridElement(row, col, 0); // 0 represents the empty cell
 
         // Update the position of the empty cell
         emptyRow = row;
@@ -539,23 +564,17 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
     @Override
     protected void initializeGame() {
-        // Create a list of numbers from 1 to rows*cols-1
+        // Create a list of numbers from 1 to gridSize-1
         List<Integer> numbers = new ArrayList<>();
-        for (int i = 1; i < rows * cols; i++) {
+        for (int i = 1; i < getGridSize(); i++) {
             numbers.add(i);
         }
         numbers.add(0); // 0 represents the empty cell
 
-        // Fill the grid in a solved state with the empty cell at the bottom-right
-        // corner
-        Iterator<Integer> iterator = numbers.iterator();
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                grid[i][j] = iterator.next();
-            }
-        }
-        emptyRow = rows - 1;
-        emptyCol = cols - 1;
+        // Fill the grid in a solved state with the empty cell at the bottom-right corner
+        gameGrid.fillFromList(numbers);
+        emptyRow = getRows() - 1;
+        emptyCol = getCols() - 1;
 
         // Shuffle the grid by making valid moves from the solved state
         // This ensures the puzzle is always solvable
@@ -588,15 +607,15 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         String input = scanner.nextLine();
         try {
             int move_tile = Integer.parseInt(input);
-            if (move_tile < 1 || move_tile > rows * cols - 1) {
-                System.out.println("Invalid tile number. Please enter a number between 1 and " + (rows * cols - 1));
+            if (move_tile < 1 || move_tile > getGridSize() - 1) {
+                System.out.println("Invalid tile number. Please enter a number between 1 and " + (getGridSize() - 1));
                 return;
             }
 
             // Find the position of the tile
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    if (grid[i][j] == move_tile) {
+            for (int i = 0; i < getRows(); i++) {
+                for (int j = 0; j < getCols(); j++) {
+                    if (getGridElement(i, j).equals(move_tile)) {
                         // Check if the tile is adjacent to the empty cell
                         if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) || // Up or Down
                                 (Math.abs(emptyCol - j) == 1 && emptyRow == i)) { // Left or Right
@@ -617,19 +636,19 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     @Override
     protected boolean checkWinCondition() {
         // if the empty cell is not in the bottom-right corner, return false immediately
-        if (grid[rows - 1][cols - 1] != 0) {
+        if (!getGridElement(getRows() - 1, getCols() - 1).equals(0)) {
             return false;
         }
 
         // Check if the numbers are in ascending order
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
+        for (int i = 0; i < getRows(); i++) {
+            for (int j = 0; j < getCols(); j++) {
                 // Skip the empty cell
-                if (i == rows - 1 && j == cols - 1) {
+                if (i == getRows() - 1 && j == getCols() - 1) {
                     continue;
                 }
 
-                if (grid[i][j] != i * cols + j + 1) {
+                if (!getGridElement(i, j).equals(i * getCols() + j + 1)) {
                     // If a number is out of place, the puzzle is not solved
                     return false;
                 }
@@ -666,7 +685,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         System.out.println("Total Time: " + totalTime + " seconds");
         System.out.println("Difficulty: " + (player.getDifficultyLevel() == 1 ? "Easy" : 
                                           player.getDifficultyLevel() == 2 ? "Medium" : "Hard"));
-        System.out.println("Grid Size: " + rows + "x" + cols);
+        System.out.println("Grid Size: " + getRows() + "x" + getCols());
         
         // Check and update top score
         int previousTopScore = player.getTopScore();
@@ -715,26 +734,27 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
         // Print the top border
         sb.append(topLeftCorner);
-        for (int j = 0; j < cols; j++) {
+        for (int j = 0; j < getCols(); j++) {
             sb.append(horizontalBorder);
         }
         sb.append("\n");
 
         // Print each row of the grid
-        for (int i = 0; i < rows; i++) {
+        for (int i = 0; i < getRows(); i++) {
             sb.append(verticalBorder);
-            for (int j = 0; j < cols; j++) {
-                if (grid[i][j] == 0) {
+            for (int j = 0; j < getCols(); j++) {
+                Integer cellValue = getGridElement(i, j);
+                if (cellValue.equals(0)) {
                     sb.append(emptyCell).append(verticalBorder);
                 } else {
-                    sb.append(String.format(cellFormat, grid[i][j])).append(verticalBorder);
+                    sb.append(String.format(cellFormat, cellValue)).append(verticalBorder);
                 }
             }
 
             // Print the row separator
             sb.append("\n" + topLeftCorner);
 
-            for (int j = 0; j < cols; j++) {
+            for (int j = 0; j < getCols(); j++) {
                 sb.append(horizontalBorder);
             }
             sb.append("\n");
