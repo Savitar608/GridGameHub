@@ -45,13 +45,23 @@ public final class SlidingPuzzleGame extends GridGame<Integer> {
     private String verticalBorder = "|";
     private String cellFormat = "%2d";
 
+    /**
+     * Creates a sliding puzzle game using the default console input/output services.
+     */
     public SlidingPuzzleGame() {
         super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS);
         addDifficultyLevel(4, "Expert");
         addDifficultyLevel(5, "Master");
         addDifficultyLevel(6, "Legendary");
     }
-    
+
+    /**
+     * Creates a sliding puzzle game with custom input/output services (useful for
+     * testing).
+     *
+     * @param inputService  service used for reading player input
+     * @param outputService service used for writing game output
+     */
     public SlidingPuzzleGame(InputService inputService, OutputService outputService) {
         super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS, inputService, outputService);
         addDifficultyLevel(4, "Expert");

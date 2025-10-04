@@ -77,11 +77,26 @@ public class GameController {
         inputService.close();
     }
 
+    /**
+     * Captures the player's name using the configured input and output services.
+     *
+     * @param game           the game providing player context
+     * @param inputService   input source for player responses
+     * @param outputService  destination for prompts and feedback
+     */
     private void configurePlayer(GridGame<?> game, InputService inputService, OutputService outputService) {
         Player player = game.getPlayer();
         player.promptForName(inputService, outputService);
     }
 
+    /**
+     * Prompts the player to choose a difficulty level and applies any necessary
+     * validation or default fallbacks.
+     *
+     * @param game           the game providing difficulty options
+     * @param inputService   input source for player selection
+     * @param outputService  destination for informational messages
+     */
     private void configureDifficulty(GridGame<?> game, InputService inputService, OutputService outputService) {
         DifficultyManager difficultyManager = game.getDifficultyManager();
         List<Integer> levels = difficultyManager.getSortedDifficultyLevels();
