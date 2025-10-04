@@ -54,11 +54,11 @@ abstract class GridGame<T> {
         this.gameGrid = new Grid<>(componentType, rows, cols);
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
-    this.player = new Player(); // Initialize with default values
-    this.difficultyManager = new DifficultyManager();
+        this.player = new Player(); // Initialize with default values
+        this.difficultyManager = new DifficultyManager();
 
-    // Initialize default difficulty levels (can be overridden by subclasses)
-    initializeDefaultDifficultyLevels();
+        // Initialize default difficulty levels (can be overridden by subclasses)
+        initializeDefaultDifficultyLevels();
         this.gameController = new GameController();
     }
 
@@ -100,10 +100,10 @@ abstract class GridGame<T> {
      * Initializes the default difficulty levels. Can be overridden by subclasses.
      */
     protected void initializeDefaultDifficultyLevels() {
-    difficultyManager.clear();
-    difficultyManager.addDifficultyLevel(1, "Easy");
-    difficultyManager.addDifficultyLevel(2, "Medium");
-    difficultyManager.addDifficultyLevel(3, "Hard");
+        difficultyManager.clear();
+        difficultyManager.addDifficultyLevel(1, "Easy");
+        difficultyManager.addDifficultyLevel(2, "Medium");
+        difficultyManager.addDifficultyLevel(3, "Hard");
     }
 
     /**
@@ -114,7 +114,7 @@ abstract class GridGame<T> {
      * @param name  The name/description of the difficulty level
      */
     protected void addDifficultyLevel(int level, String name) {
-    difficultyManager.addDifficultyLevel(level, name);
+        difficultyManager.addDifficultyLevel(level, name);
     }
 
     /**
@@ -124,7 +124,7 @@ abstract class GridGame<T> {
      * @return The name of the difficulty level, or "Unknown" if not found
      */
     protected String getDifficultyName(int level) {
-    return difficultyManager.getDifficultyName(level);
+        return difficultyManager.getDifficultyName(level);
     }
 
     /**
@@ -134,7 +134,7 @@ abstract class GridGame<T> {
      * @return true if the level is valid, false otherwise
      */
     protected boolean isValidDifficultyLevel(int level) {
-    return difficultyManager.isValidDifficultyLevel(level);
+        return difficultyManager.isValidDifficultyLevel(level);
     }
 
     /**
@@ -542,10 +542,10 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     @Override
     protected void makeMove(int row, int col) {
         // Swap the empty cell with the selected cell using Grid methods
-    Integer tileValue = gameGrid.get(row, col);
+        Integer tileValue = gameGrid.get(row, col);
 
-    gameGrid.set(emptyRow, emptyCol, tileValue);
-    gameGrid.set(row, col, 0); // 0 represents the empty cell
+        gameGrid.set(emptyRow, emptyCol, tileValue);
+        gameGrid.set(row, col, 0); // 0 represents the empty cell
 
         // Update the position of the empty cell
         emptyRow = row;
@@ -632,7 +632,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     @Override
     protected boolean checkWinCondition() {
         // if the empty cell is not in the bottom-right corner, return false immediately
-    if (!gameGrid.get(getRows() - 1, getCols() - 1).equals(0)) {
+        if (!gameGrid.get(getRows() - 1, getCols() - 1).equals(0)) {
             return false;
         }
 
