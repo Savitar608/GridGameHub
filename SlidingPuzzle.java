@@ -1,3 +1,4 @@
+
 /**
  * CS611 - Object Oriented Design
  * Assignment 1 - Sliding Puzzle Game
@@ -46,8 +47,8 @@ abstract class GridGame<T> {
      * Constructor to initialize the game.
      *
      * @param componentType The class type of grid elements
-     * @param rows The number of rows in the grid.
-     * @param cols The number of columns in the grid.
+     * @param rows          The number of rows in the grid.
+     * @param cols          The number of columns in the grid.
      */
     public GridGame(Class<T> componentType, int rows, int cols) {
         // Initialize the grid using the Grid class
@@ -55,37 +56,41 @@ abstract class GridGame<T> {
         this.isGameOver = false;
         this.scanner = new Scanner(System.in);
         this.player = new Player(); // Initialize with default values
-        
+
         // Initialize default difficulty levels (can be overridden by subclasses)
         initializeDefaultDifficultyLevels();
     }
-    
+
     /**
      * Gets the number of rows in the grid.
+     * 
      * @return The number of rows
      */
     protected int getRows() {
         return gameGrid.getRows();
     }
-    
+
     /**
      * Gets the number of columns in the grid.
+     * 
      * @return The number of columns
      */
     protected int getCols() {
         return gameGrid.getCols();
     }
-    
+
     /**
      * Gets the grid size (total cells).
+     * 
      * @return The total number of cells
      */
     protected int getGridSize() {
         return gameGrid.getSize();
     }
-    
+
     /**
      * Gets an element from the grid.
+     * 
      * @param row The row index
      * @param col The column index
      * @return The element at the specified position
@@ -93,17 +98,18 @@ abstract class GridGame<T> {
     protected T getGridElement(int row, int col) {
         return gameGrid.get(row, col);
     }
-    
+
     /**
      * Sets an element in the grid.
-     * @param row The row index
-     * @param col The column index
+     * 
+     * @param row   The row index
+     * @param col   The column index
      * @param value The value to set
      */
     protected void setGridElement(int row, int col, T value) {
         gameGrid.set(row, col, value);
     }
-    
+
     /**
      * Initializes the default difficulty levels. Can be overridden by subclasses.
      */
@@ -114,23 +120,24 @@ abstract class GridGame<T> {
         difficultyLevels.put(1, "Easy");
         difficultyLevels.put(2, "Medium");
         difficultyLevels.put(3, "Hard");
-        
+
         minDifficultyLevel = Collections.min(difficultyLevels.keySet());
         maxDifficultyLevel = Collections.max(difficultyLevels.keySet());
     }
-    
+
     /**
-     * Adds a new difficulty level. Useful for extending the game with custom difficulties.
+     * Adds a new difficulty level. Useful for extending the game with custom
+     * difficulties.
      * 
      * @param level The difficulty level number
-     * @param name The name/description of the difficulty level
+     * @param name  The name/description of the difficulty level
      */
     protected void addDifficultyLevel(int level, String name) {
         difficultyLevels.put(level, name);
         minDifficultyLevel = Math.min(minDifficultyLevel, level);
         maxDifficultyLevel = Math.max(maxDifficultyLevel, level);
     }
-    
+
     /**
      * Gets the name of a difficulty level.
      * 
@@ -140,7 +147,7 @@ abstract class GridGame<T> {
     protected String getDifficultyName(int level) {
         return difficultyLevels.getOrDefault(level, "Unknown");
     }
-    
+
     /**
      * Checks if a difficulty level is valid.
      * 
@@ -231,7 +238,7 @@ abstract class GridGame<T> {
         StringBuilder optionsBuilder = new StringBuilder();
         List<Integer> levels = new ArrayList<>(difficultyLevels.keySet());
         Collections.sort(levels);
-        
+
         for (int i = 0; i < levels.size(); i++) {
             int level = levels.get(i);
             optionsBuilder.append(level).append(" (").append(difficultyLevels.get(level)).append(")");
@@ -239,7 +246,7 @@ abstract class GridGame<T> {
                 optionsBuilder.append(", ");
             }
         }
-        
+
         System.out.println("Hey " + getPlayerInfo() + ", choose your difficulty level: " + optionsBuilder.toString());
         System.out.println("Note: The difficulty level increases exponentially with grid size");
         String chosenLevel = scanner.nextLine();
@@ -256,7 +263,7 @@ abstract class GridGame<T> {
 
         // Set the level (Player class will validate and default if invalid)
         player.setDifficultyLevel(level);
-        
+
         // Check if the level was changed due to validation
         if (!isValidDifficultyLevel(level)) {
             System.out.println("Invalid level. Defaulting to " + getDifficultyName(minDifficultyLevel) + ".");
@@ -264,7 +271,7 @@ abstract class GridGame<T> {
         }
 
         System.out.println("Difficulty set to: " + getDifficultyName(player.getDifficultyLevel()));
-        
+
         // Show current top score for this difficulty
         int currentTopScore = player.getTopScore();
         if (currentTopScore > 0) {
@@ -276,7 +283,7 @@ abstract class GridGame<T> {
         // Show difficulty-specific warnings or tips
         showDifficultySpecificMessage(player.getDifficultyLevel());
     }
-    
+
     /**
      * Shows difficulty-specific messages. Can be overridden by subclasses.
      * 
@@ -286,8 +293,10 @@ abstract class GridGame<T> {
         // Show different messages based on difficulty level
         if (difficultyLevel >= 4) {
             System.out.println("🔥 EXTREME DIFFICULTY ACTIVATED! 🔥");
-            System.out.println("Warning: " + getDifficultyName(difficultyLevel) + " mode is for seasoned puzzle masters!");
-            System.out.println("Tip: Take your time and think several moves ahead. Consider using pen and paper to track your strategy.");
+            System.out.println(
+                    "Warning: " + getDifficultyName(difficultyLevel) + " mode is for seasoned puzzle masters!");
+            System.out.println(
+                    "Tip: Take your time and think several moves ahead. Consider using pen and paper to track your strategy.");
         } else if (difficultyLevel == 3) {
             System.out.println("Warning: " + getDifficultyName(difficultyLevel) + " mode can be quite challenging!");
             System.out.println("Tip: Plan your moves ahead and try to visualize the solution.");
@@ -350,7 +359,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     // Position of the empty cell
     private int emptyRow;
     private int emptyCol;
-    
+
     // Score tracking
     private int currentScore;
     private int moveCount;
@@ -396,7 +405,8 @@ class SlidingPuzzleGame extends GridGame<Integer> {
 
                 // Validate the size against max constraints
                 if (rows < MIN_SIZE || cols < MIN_SIZE || rows > MAX_SIZE || cols > MAX_SIZE) {
-                    System.out.println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
+                    System.out
+                            .println("Invalid size. Using default size of " + DEFAULT_ROWS + "x" + DEFAULT_COLS + ".");
                     rows = DEFAULT_ROWS;
                     cols = DEFAULT_COLS;
                 }
@@ -432,7 +442,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     protected int getShuffleMoves() {
         int baseMultiplier; // Base multiplier for shuffle moves
         int diffLevel = player.getDifficultyLevel();
-        
+
         // Extensible difficulty system - base multiplier scales with difficulty level
         if (diffLevel <= 3) {
             // Original difficulty levels
@@ -461,7 +471,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         // Calculate shuffle moves using a custom formula
         return (int) (baseMultiplier * Math.pow(gridSize, exponent));
     }
-    
+
     /**
      * Calculates the current score based on moves, time, difficulty, and grid size.
      * Higher difficulty and larger grids give more base points.
@@ -470,18 +480,20 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      * @return The calculated score
      */
     private int calculateScore() {
-        if (moveCount == 0) return 0;
-        
+        if (moveCount == 0)
+            return 0;
+
         long elapsedTimeSeconds = (System.currentTimeMillis() - startTime) / 1000;
-        if (elapsedTimeSeconds == 0) elapsedTimeSeconds = 1; // Avoid division by zero
-        
+        if (elapsedTimeSeconds == 0)
+            elapsedTimeSeconds = 1; // Avoid division by zero
+
         // Base score increases with difficulty and grid size
         int baseScore = player.getDifficultyLevel() * getGridSize() * 100;
-        
+
         // Efficiency bonus: fewer moves and less time = higher score
         double moveEfficiency = Math.max(0.1, 1.0 / moveCount);
         double timeEfficiency = Math.max(0.1, 1.0 / elapsedTimeSeconds);
-        
+
         // Calculate final score
         return (int) (baseScore * moveEfficiency * timeEfficiency * 10);
     }
@@ -515,7 +527,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
      */
     public SlidingPuzzleGame() {
         super(Integer.class, DEFAULT_ROWS, DEFAULT_COLS);
-        
+
         // Add additional difficulty levels to demonstrate extensibility
         addDifficultyLevel(4, "Expert");
         addDifficultyLevel(5, "Master");
@@ -549,14 +561,14 @@ class SlidingPuzzleGame extends GridGame<Integer> {
     protected void makeMove(int row, int col) {
         // Swap the empty cell with the selected cell using Grid methods
         Integer tileValue = getGridElement(row, col);
-        
+
         setGridElement(emptyRow, emptyCol, tileValue);
         setGridElement(row, col, 0); // 0 represents the empty cell
 
         // Update the position of the empty cell
         emptyRow = row;
         emptyCol = col;
-        
+
         // Update score tracking
         moveCount++;
         currentScore = calculateScore();
@@ -571,14 +583,16 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         }
         numbers.add(0); // 0 represents the empty cell
 
-        // Fill the grid in a solved state with the empty cell at the bottom-right corner
+        // Fill the grid in a solved state with the empty cell at the bottom-right
+        // corner
         gameGrid.fillFromList(numbers);
         emptyRow = getRows() - 1;
         emptyCol = getCols() - 1;
 
         // Shuffle the grid by making valid moves from the solved state
         // This ensures the puzzle is always solvable
-        // Number of random moves to shuffle the puzzle will depend on the difficulty level
+        // Number of random moves to shuffle the puzzle will depend on the difficulty
+        // level
         // and grid size
         int shuffleMoves = getShuffleMoves();
         for (int i = 0; i < shuffleMoves; i++) {
@@ -594,7 +608,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             }
         }
         isGameOver = false; // Reset game over status
-        
+
         // Initialize score tracking
         currentScore = 0;
         moveCount = 0;
@@ -675,7 +689,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         // Calculate final score
         int finalScore = calculateScore();
         long totalTime = (System.currentTimeMillis() - startTime) / 1000;
-        
+
         // Display the final grid and a congratulatory message
         System.out.println("Congratulations " + getPlayerInfo() + "! You've solved the puzzle! 🎉");
         System.out.println();
@@ -683,10 +697,10 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         System.out.println("Final Score: " + finalScore);
         System.out.println("Total Moves: " + moveCount);
         System.out.println("Total Time: " + totalTime + " seconds");
-        System.out.println("Difficulty: " + (player.getDifficultyLevel() == 1 ? "Easy" : 
-                                          player.getDifficultyLevel() == 2 ? "Medium" : "Hard"));
+        System.out.println("Difficulty: "
+                + (player.getDifficultyLevel() == 1 ? "Easy" : player.getDifficultyLevel() == 2 ? "Medium" : "Hard"));
         System.out.println("Grid Size: " + getRows() + "x" + getCols());
-        
+
         // Check and update top score
         int previousTopScore = player.getTopScore();
         boolean newRecord = player.updateTopScore(finalScore);
@@ -694,12 +708,13 @@ class SlidingPuzzleGame extends GridGame<Integer> {
             System.out.println();
             System.out.println("🏆 NEW PERSONAL RECORD! 🏆");
             if (previousTopScore > 0) {
-                System.out.println("Previous best: " + previousTopScore + " (improved by " + (finalScore - previousTopScore) + ")");
+                System.out.println("Previous best: " + previousTopScore + " (improved by "
+                        + (finalScore - previousTopScore) + ")");
             } else {
                 System.out.println("This is your first completed game at this difficulty!");
             }
         }
-        
+
         // Display all top scores
         Map<Integer, Integer> allScores = player.getAllTopScores();
         System.out.println();
@@ -761,12 +776,13 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         }
 
         System.out.println(sb.toString());
-        
+
         // Display game statistics
         if (moveCount > 0) {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
             String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
-            System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore + " | Difficulty: " + currentDifficulty);
+            System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
+                    + " | Difficulty: " + currentDifficulty);
             System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + "): " + player.getTopScore());
         }
     }
