@@ -15,12 +15,6 @@
  * - Top score tracking per difficulty level
  * - Player management with separate Player class
  * - Solvability guarantee through controlled shuffling
- * 
- * @author Adithya Lnu
- * @version 2.0
- * @date October 4, 2025
- * @course CS611 - Object Oriented Design
- * @assignment Assignment 1
  */
 
 /**

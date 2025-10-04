@@ -15,12 +15,6 @@
  * - Top score tracking per difficulty level using Map structure
  * - Utility methods for score management and player information display
  * - Default value handling for robustness
- * 
- * @author Adithya Lnu
- * @version 2.0
- * @date October 4, 2025
- * @course CS611 - Object Oriented Design
- * @assignment Assignment 1
  */
 
 import java.util.*;
@@ -88,8 +82,8 @@ public class Player {
      *
      * @param inputService  input source for the player's response
      * @param outputService destination for prompt and feedback messages
-    * @return {@code true} if gameplay should continue, {@code false} when the
-    *         player opts to quit
+     * @return {@code true} if gameplay should continue, {@code false} when the
+     *         player opts to quit
      */
     public boolean promptForName(InputService inputService, OutputService outputService) {
         Objects.requireNonNull(inputService, "inputService must not be null");

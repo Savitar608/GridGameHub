@@ -7,11 +7,10 @@
  *              to supply custom metadata and rendering for their individual pieces.
  */
 
-
 /**
  * Core abstraction for board game pieces, enabling concrete games
  * to supply custom metadata and rendering for their individual pieces.
- * */
+ */
 public interface GamePiece {
     /**
      * Human-readable token used when rendering the piece on the board.

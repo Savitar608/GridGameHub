@@ -1,3 +1,4 @@
+
 /**
  * CS611 - Object Oriented Design
  * Assignment 1 - Sliding Puzzle Game
@@ -12,11 +13,6 @@
  * - Difficulty-aware shuffling and score calculations
  * - Solvability maintained by performing randomized valid moves from the solved state
  * - Per-grid, per-difficulty score tracking via {@link Player}
- * 
- * @version 2.0
- * @date October 4, 2025
- * @course CS611 - Object Oriented Design
- * @assignment Assignment 1
  */
 
 import java.util.ArrayList;
@@ -25,6 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+
+/**
+ * Sliding puzzle game implementation extending the generic {@link GridGame} framework.
+ * Provides specific functionality for the sliding puzzle mechanics.
+ * - Customizable grid initialization and shuffling
+ * - Move validation and tracking
+ * - Score calculation based on moves, time, difficulty, and grid size
+ * - Contextual messaging based on selected difficulty
+ */
 public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     public static final int MIN_SIZE = 3;
     public static final int MAX_SIZE = 20;
@@ -46,7 +51,8 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     private String cellFormat = "%2s";
 
     /**
-     * Creates a sliding puzzle game using the default console input/output services.
+     * Creates a sliding puzzle game using the default console input/output
+     * services.
      */
     public SlidingPuzzleGame() {
         super(SlidingPuzzlePiece.class, DEFAULT_ROWS, DEFAULT_COLS);
@@ -238,9 +244,10 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         outputService.println("=========================================");
         outputService.println("    WELCOME TO THE SLIDING PUZZLE GAME!  ");
         outputService.println("=========================================");
-    outputService.println("Type 'quit' at any prompt to exit the game.");
+        outputService.println("Type 'quit' at any prompt to exit the game.");
         outputService.println("\n--- How to Play ---");
-        outputService.println("1. Objective: Arrange the numbers in ascending order, from left to right, top to bottom.");
+        outputService
+                .println("1. Objective: Arrange the numbers in ascending order, from left to right, top to bottom.");
         outputService.println("   The empty space should be in the bottom-right corner when solved.");
         outputService.println("\n   For a 3x3 puzzle, the solved state looks like this:");
         outputService.println("   +--+--+--+");
@@ -265,13 +272,15 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
      */
     @Override
     protected void makeMove(int row, int col) {
-        SlidingPuzzlePiece tilePiece = gameGrid.get(row, col);
+        Tile<SlidingPuzzlePiece> sourceTile = gameGrid.getTile(row, col);
+        SlidingPuzzlePiece tilePiece = sourceTile.getOccupant();
         if (tilePiece == null || tilePiece.isEmpty()) {
             return;
         }
 
-        gameGrid.set(emptyRow, emptyCol, tilePiece);
-        gameGrid.set(row, col, SlidingPuzzlePiece.empty());
+        Tile<SlidingPuzzlePiece> emptyTile = gameGrid.getTile(emptyRow, emptyCol);
+        emptyTile.setOccupant(tilePiece);
+        sourceTile.setOccupant(SlidingPuzzlePiece.empty());
 
         emptyRow = row;
         emptyCol = col;
@@ -342,7 +351,7 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
 
             for (int i = 0; i < getRows(); i++) {
                 for (int j = 0; j < getCols(); j++) {
-                    SlidingPuzzlePiece candidate = gameGrid.get(i, j);
+                    SlidingPuzzlePiece candidate = gameGrid.getPiece(i, j);
                     if (candidate != null && candidate.hasValue(moveTile)) {
                         if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) ||
                                 (Math.abs(emptyCol - j) == 1 && emptyRow == i)) {
@@ -367,7 +376,7 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
      */
     @Override
     protected boolean checkWinCondition() {
-        SlidingPuzzlePiece bottomRight = gameGrid.get(getRows() - 1, getCols() - 1);
+        SlidingPuzzlePiece bottomRight = gameGrid.getPiece(getRows() - 1, getCols() - 1);
         if (bottomRight == null || !bottomRight.isEmpty()) {
             return false;
         }
@@ -378,7 +387,7 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
                     continue;
                 }
 
-                SlidingPuzzlePiece expected = gameGrid.get(i, j);
+                SlidingPuzzlePiece expected = gameGrid.getPiece(i, j);
                 if (expected == null || !expected.hasValue(i * getCols() + j + 1)) {
                     return false;
                 }
@@ -502,11 +511,16 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         for (int i = 0; i < getRows(); i++) {
             sb.append(verticalBorder);
             for (int j = 0; j < getCols(); j++) {
-                SlidingPuzzlePiece piece = gameGrid.get(i, j);
+                Tile<SlidingPuzzlePiece> tile = gameGrid.getTile(i, j);
+                SlidingPuzzlePiece piece = tile.getOccupant();
                 if (piece == null || piece.isEmpty()) {
                     sb.append(emptyCell).append(verticalBorder);
                 } else {
                     sb.append(String.format(cellFormat, piece.getDisplayToken())).append(verticalBorder);
+                }
+
+                if (tile.wasRecentlyUpdated()) {
+                    tile.acknowledgeUpdate();
                 }
             }
 
@@ -522,8 +536,9 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         if (moveCount > 0) {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
             String currentDifficulty = getDifficultyName(getPlayer().getDifficultyLevel());
-            outputService.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
-                    + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
+            outputService
+                    .println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore
+                            + " | Difficulty: " + currentDifficulty + " | Grid: " + getRows() + "x" + getCols());
             outputService.println(getPlayer().getName() + "'s Top Score (" + currentDifficulty + ", " + getRows() + "x"
                     + getCols() + "): " + getPlayer().getTopScore(getRows(), getCols()));
         }

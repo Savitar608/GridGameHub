@@ -4,9 +4,16 @@
  *
  * File: SlidingPuzzlePiece.java
  * Description: Concrete {@link GamePiece} representation for numbered tiles in
- *              the sliding puzzle. Encapsulates the tile's numeric value and
- *              empty-slot semantics, enabling future expansion with additional
- *              piece metadata.
+ * the sliding puzzle. Encapsulates the tile's numeric value and
+ * empty-slot semantics, enabling future expansion with additional
+ * piece metadata.
+ */
+
+/**
+ * Concrete {@link GamePiece} representation for numbered tiles in
+ * the sliding puzzle. Encapsulates the tile's numeric value and
+ * empty-slot semantics, enabling future expansion with additional
+ * piece metadata.
  */
 public final class SlidingPuzzlePiece implements GamePiece {
     private static final int EMPTY_VALUE = 0;

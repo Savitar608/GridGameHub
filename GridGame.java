@@ -1,3 +1,4 @@
+
 /**
  * CS611 - Object Oriented Design
  * Assignment 1 - Sliding Puzzle Game
@@ -13,11 +14,6 @@
  * - Difficulty management via {@link DifficultyManager}
  * - Player information capture and validation
  * - Delegated game loop coordination through {@link GameController}
- * 
- * @version 2.0
- * @date October 4, 2025
- * @course CS611 - Object Oriented Design
- * @assignment Assignment 1
  */
 
 import java.util.Objects;
@@ -27,7 +23,7 @@ import java.util.Objects;
  *
  * @param <T> The type of elements stored in the grid.
  */
-public abstract class GridGame<T> {
+public abstract class GridGame<T extends GamePiece> {
     protected Grid<T> gameGrid;
     protected boolean isGameOver;
     protected Player player;
@@ -35,9 +31,9 @@ public abstract class GridGame<T> {
     private final InputService inputService;
     private final OutputService outputService;
     private final GameController gameController;
-        private boolean exitRequested;
+    private boolean exitRequested;
 
-        protected static final String QUIT_KEYWORD = "quit";
+    protected static final String QUIT_KEYWORD = "quit";
 
     /**
      * Constructor to initialize the game.
@@ -53,15 +49,15 @@ public abstract class GridGame<T> {
     /**
      * Constructs a grid game that uses the provided input and output services.
      *
-     * @param componentType  the element type stored within the grid
-     * @param rows           total rows in the grid
-     * @param cols           total columns in the grid
-     * @param inputService   input provider used during gameplay
-     * @param outputService  output destination used during gameplay
+     * @param componentType the element type stored within the grid
+     * @param rows          total rows in the grid
+     * @param cols          total columns in the grid
+     * @param inputService  input provider used during gameplay
+     * @param outputService output destination used during gameplay
      */
     protected GridGame(Class<T> componentType, int rows, int cols,
-        InputService inputService,
-        OutputService outputService) {
+            InputService inputService,
+            OutputService outputService) {
         this.gameGrid = new Grid<>(componentType, rows, cols);
         this.isGameOver = false;
         this.player = new Player();
@@ -146,7 +142,8 @@ public abstract class GridGame<T> {
      * Checks whether the specified difficulty level exists in the registry.
      *
      * @param level difficulty identifier to query
-     * @return {@code true} if a matching level is configured; otherwise {@code false}
+     * @return {@code true} if a matching level is configured; otherwise
+     *         {@code false}
      */
     protected boolean isValidDifficultyLevel(int level) {
         return difficultyManager.isValidDifficultyLevel(level);
@@ -177,18 +174,18 @@ public abstract class GridGame<T> {
         return isGameOver;
     }
 
-        public boolean isExitRequested() {
-            return exitRequested;
-        }
+    public boolean isExitRequested() {
+        return exitRequested;
+    }
 
-        protected void requestExit() {
-            this.exitRequested = true;
-            this.isGameOver = true;
-        }
+    protected void requestExit() {
+        this.exitRequested = true;
+        this.isGameOver = true;
+    }
 
-        protected boolean isQuitCommand(String input) {
-            return input != null && QUIT_KEYWORD.equalsIgnoreCase(input.trim());
-        }
+    protected boolean isQuitCommand(String input) {
+        return input != null && QUIT_KEYWORD.equalsIgnoreCase(input.trim());
+    }
 
     /**
      * Provides access to the configured input service.

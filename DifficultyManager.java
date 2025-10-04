@@ -12,12 +12,7 @@
  * - Centralized difficulty registry with validation helpers
  * - Sorted enumeration of defined levels for consistent UI prompts
  * - Defensive copy accessors to protect internal state
- * 
- * @author
- * @version 2.0
- * @date October 4, 2025
- * @course CS611 - Object Oriented Design
- * @assignment Assignment 1
+ * - Contextual messaging based on selected difficulty
  */
 
 import java.util.ArrayList;

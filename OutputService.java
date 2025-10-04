@@ -9,7 +9,8 @@
  */
 
 /**
- * Abstraction over output operations to simplify testing of console interactions.
+ * Abstraction over output operations to simplify testing of console
+ * interactions.
  */
 public interface OutputService {
     /**

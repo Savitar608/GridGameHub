@@ -6,38 +6,32 @@
  * File: Grid.java
  * Description: Generic grid class for managing 2D grid structures in grid-based games.
  *              Provides core functionality for grid operations, validation, and display.
- *              Supports any data type through generics.
+ *              Supports any {@link GamePiece}-based tile through generics.
  * 
  * Features:
- * - Generic 2D grid structure supporting any data type
+ * - 2D grid of {@link Tile} instances tracking occupants and metadata
  * - Grid validation and bounds checking
  * - Grid initialization and element access methods
  * - Grid size management and resizing capabilities
  * - Iterator support for grid traversal
  * - Display formatting support
- * 
- * @author Adithya Lnu
- * @version 2.0
- * @date October 4, 2025
- * @course CS611 - Object Oriented Design
- * @assignment Assignment 1
  */
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 
 /**
- * Generic grid class for managing 2D grid structures.
- * Supports any data type through generics and provides essential grid
- * operations.
+ * Generic grid class for managing 2D grid structures comprised of {@link Tile}
+ * objects that wrap {@link GamePiece} instances.
  *
- * @param <T> The type of elements stored in the grid
+ * @param <T> type of {@link GamePiece} stored within the grid tiles
  */
-public class Grid<T> {
-    private T[][] grid;
+public class Grid<T extends GamePiece> {
+    private Tile<T>[][] grid;
     private int rows;
     private int cols;
-    private Class<T> componentType;
+    private final Class<T> componentType;
 
     /**
      * Constructor to create a grid with specified dimensions and type.
@@ -57,12 +51,12 @@ public class Grid<T> {
         this.rows = rows;
         this.cols = cols;
 
-        // Create a 2D generic array properly using reflection
-        T[][] tempGrid = (T[][]) Array.newInstance(componentType, rows, 0);
+        this.grid = (Tile<T>[][]) new Tile[rows][cols];
         for (int i = 0; i < rows; i++) {
-            tempGrid[i] = (T[]) Array.newInstance(componentType, cols);
+            for (int j = 0; j < cols; j++) {
+                grid[i][j] = new Tile<>(i, j, null);
+            }
         }
-        this.grid = tempGrid;
     }
 
     /**
@@ -100,9 +94,21 @@ public class Grid<T> {
      * @return The element at the specified position
      * @throws IndexOutOfBoundsException if the position is invalid
      */
-    public T get(int row, int col) {
+    public Tile<T> getTile(int row, int col) {
         validateBounds(row, col);
         return grid[row][col];
+    }
+
+    /**
+     * Gets the piece occupying the tile at the specified position.
+     *
+     * @param row The row index (0-based)
+     * @param col The column index (0-based)
+     * @return The game piece at the specified position, or {@code null} if empty
+     * @throws IndexOutOfBoundsException if the position is invalid
+     */
+    public T getPiece(int row, int col) {
+        return getTile(row, col).getOccupant();
     }
 
     /**
@@ -113,9 +119,17 @@ public class Grid<T> {
      * @param value The value to set
      * @throws IndexOutOfBoundsException if the position is invalid
      */
-    public void set(int row, int col, T value) {
+    public void setPiece(int row, int col, T value) {
         validateBounds(row, col);
-        grid[row][col] = value;
+        grid[row][col].setOccupant(value);
+    }
+
+    /**
+     * Clears the tile at the specified position.
+     */
+    public void clearTile(int row, int col) {
+        validateBounds(row, col);
+        grid[row][col].clear();
     }
 
     /**
@@ -149,10 +163,10 @@ public class Grid<T> {
      * @param value The value to fill the grid with
      */
     public void fill(T value) {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                grid[i][j] = value;
-            }
+        if (value == null) {
+            forEachTile(Tile::clear);
+        } else {
+            forEachTile(tile -> tile.setOccupant(value));
         }
     }
 
@@ -171,7 +185,7 @@ public class Grid<T> {
         Iterator<T> iterator = values.iterator();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                grid[i][j] = iterator.next();
+                grid[i][j].setOccupant(iterator.next());
             }
         }
     }
@@ -186,7 +200,7 @@ public class Grid<T> {
     public int[] findPosition(T value) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                if (Objects.equals(grid[i][j], value)) {
+                if (Objects.equals(grid[i][j].getOccupant(), value)) {
                     return new int[] { i, j };
                 }
             }
@@ -207,9 +221,9 @@ public class Grid<T> {
         validateBounds(row1, col1);
         validateBounds(row2, col2);
 
-        T temp = grid[row1][col1];
-        grid[row1][col1] = grid[row2][col2];
-        grid[row2][col2] = temp;
+        T temp = grid[row1][col1].getOccupant();
+        grid[row1][col1].setOccupant(grid[row2][col2].getOccupant());
+        grid[row2][col2].setOccupant(temp);
     }
 
     /**
@@ -222,7 +236,10 @@ public class Grid<T> {
         Grid<T> newGrid = new Grid<>(componentType, rows, cols);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                newGrid.set(i, j, this.get(i, j));
+                T occupant = grid[i][j].getOccupant();
+                if (occupant != null) {
+                    newGrid.setPiece(i, j, occupant);
+                }
             }
         }
         return newGrid;
@@ -243,21 +260,24 @@ public class Grid<T> {
         }
 
         // Create new grid
-        T[][] newGrid = (T[][]) Array.newInstance(componentType, newRows, 0);
+        Tile<T>[][] newGrid = (Tile<T>[][]) new Tile[newRows][newCols];
         for (int i = 0; i < newRows; i++) {
-            newGrid[i] = (T[]) Array.newInstance(componentType, newCols);
+            for (int j = 0; j < newCols; j++) {
+                newGrid[i][j] = new Tile<>(i, j, null);
+            }
         }
 
-        // Copy existing content
         int copyRows = Math.min(rows, newRows);
         int copyCols = Math.min(cols, newCols);
         for (int i = 0; i < copyRows; i++) {
             for (int j = 0; j < copyCols; j++) {
-                newGrid[i][j] = grid[i][j];
+                T occupant = grid[i][j].getOccupant();
+                if (occupant != null) {
+                    newGrid[i][j].setOccupant(occupant);
+                }
             }
         }
 
-        // Update grid properties
         this.grid = newGrid;
         this.rows = newRows;
         this.cols = newCols;
@@ -275,7 +295,7 @@ public class Grid<T> {
         for (int i = 0; i < rows; i++) {
             sb.append("[");
             for (int j = 0; j < cols; j++) {
-                sb.append(grid[i][j]);
+                sb.append(grid[i][j].getOccupant());
                 if (j < cols - 1)
                     sb.append(", ");
             }
@@ -290,7 +310,15 @@ public class Grid<T> {
      *
      * @return The raw 2D array (use with caution)
      */
-    public T[][] getRawGrid() {
+    public Tile<T>[][] getRawGrid() {
         return grid;
+    }
+
+    private void forEachTile(java.util.function.Consumer<Tile<T>> action) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                action.accept(grid[i][j]);
+            }
+        }
     }
 }

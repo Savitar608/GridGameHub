@@ -1,3 +1,4 @@
+
 /**
  * CS611 - Object Oriented Design
  * Assignment 1 - Sliding Puzzle Game
@@ -24,7 +25,8 @@ public class ConsoleOutputService implements OutputService {
     }
 
     /**
-     * Constructs an output service that writes to the specified {@link PrintStream}.
+     * Constructs an output service that writes to the specified
+     * {@link PrintStream}.
      *
      * @param printStream destination stream (must not be {@code null})
      */

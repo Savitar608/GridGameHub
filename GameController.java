@@ -13,12 +13,8 @@
  * - Centralized game loop management separated from game logic
  * - Replay handling with safe input processing
  * - Extensible design supporting any {@link GridGame} implementation
- * 
- * @author
- * @version 2.0
- * @date October 4, 2025
- * @course CS611 - Object Oriented Design
- * @assignment Assignment 1
+ * - Clean resource management for input services
+ * - User-friendly prompts and feedback during gameplay
  */
 
 import java.util.ArrayList;
@@ -117,9 +113,9 @@ public class GameController {
     /**
      * Captures the player's name using the configured input and output services.
      *
-     * @param game           the game providing player context
-     * @param inputService   input source for player responses
-     * @param outputService  destination for prompts and feedback
+     * @param game          the game providing player context
+     * @param inputService  input source for player responses
+     * @param outputService destination for prompts and feedback
      */
     private void configurePlayer(GridGame<?> game, InputService inputService, OutputService outputService) {
         Player player = game.getPlayer();
@@ -133,9 +129,9 @@ public class GameController {
      * Prompts the player to choose a difficulty level and applies any necessary
      * validation or default fallbacks.
      *
-     * @param game           the game providing difficulty options
-     * @param inputService   input source for player selection
-     * @param outputService  destination for informational messages
+     * @param game          the game providing difficulty options
+     * @param inputService  input source for player selection
+     * @param outputService destination for informational messages
      */
     private void configureDifficulty(GridGame<?> game, InputService inputService, OutputService outputService) {
         DifficultyManager difficultyManager = game.getDifficultyManager();
@@ -236,7 +232,8 @@ public class GameController {
 
     private boolean presentPreGameOptions(GridGame<?> game, InputService inputService, OutputService outputService) {
         while (!game.isExitRequested()) {
-            outputService.println("Choose an option: [start] Begin game, [regen] Regenerate board, [scores] View top scores, [quit] Exit");
+            outputService.println(
+                    "Choose an option: [start] Begin game, [regen] Regenerate board, [scores] View top scores, [quit] Exit");
             String choice = inputService.readLine();
 
             if (choice == null || game.isQuitCommand(choice)) {
