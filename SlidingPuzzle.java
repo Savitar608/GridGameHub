@@ -719,7 +719,7 @@ class SlidingPuzzleGame extends GridGame<Integer> {
         if (moveCount > 0) {
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
             String currentDifficulty = getDifficultyName(player.getDifficultyLevel());
-            System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore);
+            System.out.println("Moves: " + moveCount + " | Time: " + elapsedTime + "s | Current Score: " + currentScore + " | Difficulty: " + currentDifficulty);
             System.out.println(player.getName() + "'s Top Score (" + currentDifficulty + "): " + player.getTopScore());
         }
     }
