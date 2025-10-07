@@ -1,9 +1,4 @@
-/**
- * Console implementation of the classic Dots and Boxes game leveraging the
- * existing {@link GridGame} framework. Supports head-to-head play as well as
- * teams of two, providing flexible participant configuration and scoreboard
- * tracking.
- */
+
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,6 +8,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Console implementation of the classic Dots and Boxes game leveraging the
+ * existing {@link GridGame} framework. Supports head-to-head play as well as
+ * teams of two, providing flexible participant configuration and scoreboard
+ * tracking.
+ */
 public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
     private static final int MIN_SIZE = 2;
     private static final int MAX_SIZE = 20;

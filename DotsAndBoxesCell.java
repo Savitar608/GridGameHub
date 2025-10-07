@@ -1,12 +1,13 @@
-/**
- * Represents a single box in the Dots and Boxes grid. Tracks which edges have
- * been drawn and which player, if any, has claimed the box.
- */
+
 
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * Represents a single box in the Dots and Boxes grid. Tracks which edges have
+ * been drawn and which player, if any, has claimed the box.
+ */
 public final class DotsAndBoxesCell implements GamePiece {
     private final EnumMap<DotsAndBoxesEdge, String> edges;
     private Player owner;
@@ -20,7 +21,7 @@ public final class DotsAndBoxesCell implements GamePiece {
      * Attempts to add the specified edge. Returns {@code true} when the edge was
      * not previously present and is now registered.
      *
-     * @param edge edge to add
+     * @param edge  edge to add
      * @param color color code controlling how the edge is rendered
      * @return {@code true} when edge state changed
      */
@@ -100,7 +101,8 @@ public final class DotsAndBoxesCell implements GamePiece {
             return owner.getTeamTag()
                     .filter(tag -> !tag.isEmpty())
                     .map(tag -> tag.substring(0, Math.min(2, tag.length())).toUpperCase(Locale.ROOT))
-                    .orElseGet(() -> owner.getName().substring(0, Math.min(2, owner.getName().length())).toUpperCase(Locale.ROOT));
+                    .orElseGet(() -> owner.getName().substring(0, Math.min(2, owner.getName().length()))
+                            .toUpperCase(Locale.ROOT));
         }
         return Integer.toString(getEdgeCount());
     }
