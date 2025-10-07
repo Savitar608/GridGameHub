@@ -17,8 +17,13 @@
  * - Default value handling for robustness
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * Represents a player in the game with their name and difficulty level
@@ -32,6 +37,7 @@ public class Player {
     private String name;
     private int difficultyLevel;
     private Map<Integer, Map<String, Integer>> topScores; // Map difficulty level -> (grid size -> top score)
+    private Team team;
 
     private static final String[] DEFAULT_PLAYER_NAME = {"Master Chief", "Lara Croft", "Mario", "Zelda", "Link", "Samus Aran", "Pikachu", "Kirby", "Sonic", "Tails"};
     private static final int DEFAULT_DIFFICULTY_LEVEL = 1;
@@ -41,9 +47,7 @@ public class Player {
      * Constructor to create a player with default values.
      */
     public Player() {
-        this.name = getDefaultPlayerName();
-        this.difficultyLevel = getDefaultDifficultyLevel();
-        this.topScores = new HashMap<>();
+        this(getDefaultPlayerName(), getDefaultDifficultyLevel(), null);
     }
 
     /**
@@ -53,9 +57,21 @@ public class Player {
      * @param difficultyLevel The player's chosen difficulty level
      */
     public Player(String name, int difficultyLevel) {
+        this(name, difficultyLevel, null);
+    }
+
+    /**
+     * Creates a player with the supplied name, difficulty, and team affiliation.
+     *
+     * @param name            display name of the player
+     * @param difficultyLevel preferred difficulty level
+     * @param team            associated team (may be {@code null})
+     */
+    public Player(String name, int difficultyLevel, Team team) {
         setName(name);
         setDifficultyLevel(difficultyLevel);
         this.topScores = new HashMap<>();
+        this.team = team;
     }
 
     /**
@@ -78,6 +94,40 @@ public class Player {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Associates the player with the provided team.
+     *
+     * @param team team to assign (may be {@code null} to clear association)
+     */
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    /**
+     * Retrieves the team currently associated with the player.
+     *
+     * @return team details, or {@code null} when the player is unaffiliated
+     */
+    public Team getTeam() {
+        return team;
+    }
+
+    /**
+     * Removes any team association from the player.
+     */
+    public void clearTeam() {
+        this.team = null;
+    }
+
+    /**
+     * Indicates whether the player is currently part of a team.
+     *
+     * @return {@code true} when the player has an assigned team
+     */
+    public boolean hasTeam() {
+        return team != null;
     }
 
     /**
@@ -285,6 +335,9 @@ public class Player {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Player{name='").append(name).append("', difficultyLevel=").append(difficultyLevel);
+        if (team != null) {
+            sb.append(", team=").append(team);
+        }
         sb.append(", topScores={");
 
         List<Integer> levels = getPlayedDifficultyLevels();
