@@ -28,8 +28,10 @@ public class Player {
     private String name;
     private int difficultyLevel;
     private Map<Integer, Map<String, Integer>> topScores; // Map difficulty level -> (grid size -> top score)
+    private Team team;
 
-    private static final String[] DEFAULT_PLAYER_NAME = {"Master Chief", "Lara Croft", "Mario", "Zelda", "Link", "Samus Aran", "Pikachu", "Kirby", "Sonic", "Tails"};
+    private static final String[] DEFAULT_PLAYER_NAME = { "Master Chief", "Lara Croft", "Mario", "Zelda", "Link",
+            "Samus Aran", "Pikachu", "Kirby", "Sonic", "Tails" };
     private static final int DEFAULT_DIFFICULTY_LEVEL = 1;
     private static final int DEFAULT_TOP_SCORE = 0;
 
@@ -40,6 +42,7 @@ public class Player {
         this.name = getDefaultPlayerName();
         this.difficultyLevel = getDefaultDifficultyLevel();
         this.topScores = new HashMap<>();
+        this.team = null;
     }
 
     /**
@@ -52,6 +55,7 @@ public class Player {
         setName(name);
         setDifficultyLevel(difficultyLevel);
         this.topScores = new HashMap<>();
+        this.team = null;
     }
 
     /**
@@ -254,6 +258,69 @@ public class Player {
     }
 
     /**
+     * Associates this player with the supplied team. Passing {@code null}
+     * removes any existing association.
+     *
+     * @param team the team to join
+     */
+    public void joinTeam(Team team) {
+        this.team = team;
+    }
+
+    /**
+     * Convenience helper to create and assign a team in a single call.
+     *
+     * @param name  team name
+     * @param tag   short identifier or abbreviation
+     * @param color color descriptor
+     */
+    public void joinTeam(String name, String tag, String color) {
+        this.team = new Team(name, tag, color);
+    }
+
+    /**
+     * Removes the player from their current team, if any.
+     */
+    public void leaveTeam() {
+        this.team = null;
+    }
+
+    /**
+     * @return {@code true} when the player belongs to a team
+     */
+    public boolean hasTeam() {
+        return team != null;
+    }
+
+    /**
+     * @return optional providing access to the player's team when assigned
+     */
+    public Optional<Team> getTeam() {
+        return Optional.ofNullable(team);
+    }
+
+    /**
+     * @return optional containing the team name when assigned
+     */
+    public Optional<String> getTeamName() {
+        return getTeam().map(Team::getName);
+    }
+
+    /**
+     * @return optional containing the team tag when assigned
+     */
+    public Optional<String> getTeamTag() {
+        return getTeam().map(Team::getTag);
+    }
+
+    /**
+     * @return optional containing the team color when assigned
+     */
+    public Optional<String> getTeamColor() {
+        return getTeam().map(Team::getColor);
+    }
+
+    /**
      * Gets the default player name.
      * 
      * @return The default player name
@@ -280,7 +347,9 @@ public class Player {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Player{name='").append(name).append("', difficultyLevel=").append(difficultyLevel);
+        sb.append("Player{name='").append(name)
+                .append("', team=").append(hasTeam() ? team : "None")
+                .append(", difficultyLevel=").append(difficultyLevel);
         sb.append(", topScores={");
 
         List<Integer> levels = getPlayedDifficultyLevels();
