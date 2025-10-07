@@ -338,6 +338,16 @@ public abstract class GridGame<T extends GamePiece> {
         return true;
     }
 
+    /**
+     * Indicates whether the player should be allowed to regenerate or reshuffle
+     * the board prior to starting the round.
+     *
+     * @return {@code true} when the pre-game regeneration option is supported
+     */
+    public boolean supportsBoardRegeneration() {
+        return true;
+    }
+
     private void ensurePrimaryPlayer() {
         if (players.isEmpty()) {
             players.add(new Player());

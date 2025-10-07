@@ -53,6 +53,11 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
     }
 
     @Override
+    public boolean supportsBoardRegeneration() {
+        return false;
+    }
+
+    @Override
     protected boolean configurePlayers(InputService inputService, OutputService outputService) {
         clearPlayers();
         playerScores.clear();

@@ -229,7 +229,11 @@ public class GameController {
      */
     private boolean presentPreGameOptions(GridGame<?> game, InputService inputService, OutputService outputService) {
         while (!game.isExitRequested()) {
-            StringBuilder menu = new StringBuilder("Choose an option: [start] Begin game, [regen] Regenerate board");
+            boolean regenSupported = game.supportsBoardRegeneration();
+            StringBuilder menu = new StringBuilder("Choose an option: [start] Begin game");
+            if (regenSupported) {
+                menu.append(", [regen] Regenerate board");
+            }
             if (game.supportsTopScores()) {
                 menu.append(", [scores] View top scores");
             }
@@ -250,12 +254,16 @@ public class GameController {
                 case "regen":
                 case "r":
                 case "regenerate":
-                    game.initializeGame();
-                    if (game.isExitRequested()) {
-                        return false;
+                    if (regenSupported) {
+                        game.initializeGame();
+                        if (game.isExitRequested()) {
+                            return false;
+                        }
+                        outputService.println("Board regenerated.");
+                        game.displayGrid();
+                    } else {
+                        outputService.println("Board regeneration is not available for this game.");
                     }
-                    outputService.println("Board regenerated.");
-                    game.displayGrid();
                     break;
                 case "scores":
                 case "score":
