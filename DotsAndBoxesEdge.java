@@ -14,6 +14,12 @@ public enum DotsAndBoxesEdge {
     RIGHT,
     BOTTOM,
     LEFT;
+    /**
+     * Returns the edge opposite the current enum constant, corresponding to the
+     * shared edge on the neighboring box.
+     *
+     * @return opposite edge
+     */
     public DotsAndBoxesEdge opposite() {
         switch (this) {
             case TOP:

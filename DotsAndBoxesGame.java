@@ -84,6 +84,15 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return false;
     }
 
+    /**
+     * Guides the player setup process, allowing the user to choose between
+     * head-to-head and team play modes, and initializes the roster accordingly.
+     *
+     * @param inputService  shared input service for prompts
+     * @param outputService shared output service for instructions
+     * @return {@code true} when configuration succeeds and play can continue,
+     *         otherwise {@code false}
+     */
     @Override
     protected boolean configurePlayers(InputService inputService, OutputService outputService) {
         clearPlayers();
@@ -136,6 +145,14 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @return {@code true} if head-to-head mode was successfully configured,
      *         {@code false} otherwise
      */
+    /**
+     * Prompts for two individual players, assigns colors, and registers them for
+     * a head-to-head match.
+     *
+     * @param inputService  input service used for player prompts
+     * @param outputService output service for feedback
+     * @return {@code true} if configuration succeeds, {@code false} if the user quits
+     */
     private boolean configureHeadToHead(InputService inputService, OutputService outputService) {
         for (int i = 1; i <= 2; i++) {
             String prompt = String.format(Locale.ROOT, "Enter name for Player %d (or 'quit'): ", i);
@@ -171,6 +188,15 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param outputService the output service for displaying prompts and messages
      * @return {@code true} if team mode was successfully configured, {@code false}
      *         otherwise
+     */
+    /**
+     * Collects information for each team, including name, tag, color assignments,
+     * and member details, then prepares the players for play.
+     *
+     * @param inputService  input service used for prompts
+     * @param outputService output service for instructions and validation feedback
+     * @return {@code true} when teams are configured successfully, {@code false} if
+     *         the process is cancelled
      */
     private boolean configureTeamMode(InputService inputService, OutputService outputService) {
         List<List<Player>> teamPlayers = new ArrayList<>();
@@ -228,6 +254,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      *
      * @param teamPlayers the list of teams and their players
      */
+    /**
+     * Registers players in alternating team order so that teammates never take
+     * consecutive turns.
+     *
+     * @param teamPlayers ordered lists of players for each team
+     */
     private void registerAlternatingTeamPlayers(List<List<Player>> teamPlayers) {
         players.clear();
 
@@ -247,6 +279,9 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+    /**
+     * Ensures the configured board dimensions fall within the supported range.
+     */
     @Override
     protected void validateSize() {
         if (getRows() < MIN_SIZE || getCols() < MIN_SIZE || getRows() > MAX_SIZE || getCols() > MAX_SIZE) {
@@ -255,6 +290,10 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+    /**
+     * Prompts the user for custom board dimensions, enforcing valid bounds and
+     * falling back to defaults when necessary.
+     */
     @Override
     protected void setSize() {
         OutputService outputService = getOutputService();
@@ -297,6 +336,10 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         validateSize();
     }
 
+    /**
+     * Prints introductory instructions and rules for the Dots and Boxes game,
+     * summarizing gameplay flow and team-specific behavior.
+     */
     @Override
     protected void displayWelcomeMessage() {
         OutputService outputService = getOutputService();
@@ -312,6 +355,10 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         outputService.println("Type 'quit' at any prompt to exit the game.\n");
     }
 
+    /**
+     * Resets scoreboard state, reinitializes the board, and sets the starting
+     * player before a new match begins.
+     */
     @Override
     protected void initializeGame() {
         initializeBoard();
@@ -334,6 +381,10 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+    /**
+     * Renders the current board state, including colored edges and claimed boxes,
+     * and outputs the scoreboard after the visual representation.
+     */
     @Override
     protected void displayGrid() {
         OutputService outputService = getOutputService();
@@ -380,6 +431,10 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         displayScores(outputService);
     }
 
+    /**
+     * Reads and validates the active player's move, applying it when valid or
+     * reporting errors and turn outcomes.
+     */
     @Override
     protected void processUserInput() {
         OutputService outputService = getOutputService();
@@ -434,21 +489,36 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+    /**
+     * Unsupported for Dots and Boxes because moves are edge-based rather than
+     * cell-based; invocation results in an exception.
+     */
     @Override
     protected void makeMove(int row, int col) {
         throw new UnsupportedOperationException("Dots and Boxes uses edge-based moves processed elsewhere.");
     }
 
+    /**
+     * Provides guidance when an entered move cannot be parsed or is out of range.
+     */
     @Override
     protected void displayInvalidInputMessage() {
         getOutputService().println("Invalid move. Use the format 'row col side' where side is T, B, L, or R.");
     }
 
+    /**
+     * Determines whether all boxes on the board have been claimed, signalling the
+     * end of the match.
+     */
     @Override
     protected boolean checkWinCondition() {
         return claimedBoxes == getTotalBoxes();
     }
 
+    /**
+     * Announces the final results, displaying box counts and identifying winning
+     * players or teams after the board is complete.
+     */
     @Override
     protected void displayWinMessage() {
         OutputService outputService = getOutputService();
@@ -496,6 +566,9 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
     /**
      * Initializes or resets the game board to an empty state.
      */
+    /**
+     * Fills the grid with fresh cells and resets box counters prior to gameplay.
+     */
     private void initializeBoard() {
         for (int r = 0; r < gameGrid.getRows(); r++) {
             for (int c = 0; c < gameGrid.getCols(); c++) {
@@ -514,6 +587,16 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param player the player making the move
      * @return the number of boxes completed by this move, or -1 if the move is
      *         invalid
+     */
+    /**
+     * Applies the requested edge to the board, checks for completed boxes, and
+     * updates scores while mirroring the edge for adjacent cells.
+     *
+     * @param row    zero-based row index of the targeted cell
+     * @param col    zero-based column index of the targeted cell
+     * @param edge   edge to draw
+     * @param player player performing the move
+     * @return number of boxes completed, or {@code -1} if the edge already exists
      */
     private int applyMove(int row, int col, DotsAndBoxesEdge edge, Player player) {
         DotsAndBoxesCell primary = gameGrid.getPiece(row, col);
@@ -564,6 +647,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param player the player whose score to increment
      * @param delta  the amount to increment the score by
      */
+    /**
+     * Adds the specified delta to the player's score and, when applicable, the
+     * associated team's total.
+     *
+     * @param player scoring player
+     * @param delta  number of boxes claimed
+     */
     private void incrementScore(Player player, int delta) {
         playerScores.merge(player, delta, Integer::sum);
         player.getTeam().ifPresent(team -> {
@@ -577,6 +667,11 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * Displays the current scores for all players and teams.
      * 
      * @param outputService
+     */
+    /**
+     * Prints the per-player and per-team score breakdown.
+     *
+     * @param outputService destination for score output
      */
     private void displayScores(OutputService outputService) {
         outputService.println("Scores:");
@@ -602,6 +697,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * 
      * @param player the player whose color to retrieve
      * @return the ANSI color code, or reset code if none assigned
+     */
+    /**
+     * Resolves the ANSI color code to use when rendering output for the given
+     * player.
+     *
+     * @param player player whose color should be retrieved
+     * @return ANSI color code string
      */
     private String getColorForPlayer(Player player) {
         if (player == null) {
@@ -633,6 +735,14 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param edge the edge to format
      * @return the formatted edge string
      */
+    /**
+     * Produces the string representation for a horizontal edge, applying color
+     * when present.
+     *
+     * @param cell cell containing the edge
+     * @param edge edge being rendered
+     * @return colored edge segment or whitespace when absent
+     */
     private String formatHorizontalEdge(DotsAndBoxesCell cell, DotsAndBoxesEdge edge) {
         if (cell != null && cell.hasEdge(edge)) {
             return applyColor("───", cell.getEdgeColor(edge));
@@ -646,6 +756,14 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param cell the cell containing the edge
      * @param edge the edge to format
      * @return the formatted edge string
+     */
+    /**
+     * Produces the string representation for a vertical edge, applying color when
+     * present.
+     *
+     * @param cell cell containing the edge
+     * @param edge edge being rendered
+     * @return colored edge glyph or a space when absent
      */
     private String formatVerticalEdge(DotsAndBoxesCell cell, DotsAndBoxesEdge edge) {
         if (cell != null && cell.hasEdge(edge)) {
@@ -661,6 +779,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param colorCode the ANSI color code to apply
      * @return the colored text
      */
+    /**
+     * Wraps the provided text in ANSI color codes if one is supplied.
+     *
+     * @param text      text to colorize
+     * @param colorCode ANSI color code (may be {@code null})
+     * @return colorized or original text depending on availability
+     */
     private String applyColor(String text, String colorCode) {
         if (text == null) {
             return null;
@@ -675,6 +800,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * Formats the available color options for display.
      * 
      * @return a comma-separated string of color options
+     */
+    /**
+     * Builds a human-readable list of selectable colors, indicating which have
+     * already been claimed.
+     *
+     * @return formatted color options string
      */
     private String formatColorOptions() {
         StringBuilder builder = new StringBuilder();
@@ -702,8 +833,18 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param outputService the output service for displaying prompts and messages
      * @return the selected ColorChoice, or null if the user chose to quit
      */
+    /**
+     * Prompts the user for a color choice, optionally requiring a unique
+     * selection, and returns a resolved color descriptor.
+     *
+     * @param prompt        message to display
+     * @param requireUnique whether the selection must be unused
+     * @param inputService  input provider
+     * @param outputService output service for feedback
+     * @return color choice or {@code null} if the user opts to quit
+     */
     private ColorChoice promptForColor(String prompt, boolean requireUnique, InputService inputService,
-            OutputService outputService) {
+        OutputService outputService) {
         while (true) {
             outputService.print(prompt);
             String response = readLineTrimmed(inputService);
@@ -732,6 +873,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * 
      * @param input the user input
      * @return the corresponding ColorChoice, or null if unrecognized
+     */
+    /**
+     * Normalizes user input into a predefined color choice.
+     *
+     * @param input user-supplied color name or abbreviation
+     * @return matching color option when found, otherwise {@code null}
      */
     private ColorChoice resolveColorChoice(String input) {
         if (input == null) {
@@ -777,6 +924,14 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param ansiCode the ANSI code for the color
      * @return a new ColorChoice instance
      */
+    /**
+     * Creates a standardized {@link ColorChoice} instance from the supplied key
+     * and ANSI code.
+     *
+     * @param key      normalized identifier
+     * @param ansiCode ANSI escape for rendering
+     * @return constructed color choice record
+     */
     private ColorChoice newColorChoice(String key, String ansiCode) {
         return new ColorChoice(key, capitalize(key), ansiCode);
     }
@@ -787,6 +942,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * 
      * @param value the string to capitalize
      * @return the capitalized string, or an empty string if the input is null or empty
+     */
+    /**
+     * Capitalizes the provided string while lower-casing remaining characters.
+     *
+     * @param value input string
+     * @return capitalized representation or empty string when {@code null}
      */
     private String capitalize(String value) {
         if (value == null || value.isEmpty()) {
@@ -802,6 +963,9 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * 
      * @return the total number of boxes
      */
+    /**
+     * @return total number of boxes on the current board.
+     */
     private int getTotalBoxes() {
         return gameGrid.getRows() * gameGrid.getCols();
     }
@@ -812,6 +976,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * 
      * @param token the token string
      * @return the centered token string
+     */
+    /**
+     * Centers a token string within a three-character cell for board display.
+     *
+     * @param token token to center
+     * @return padded representation suitable for rendering
      */
     private String centerToken(String token) {
         String trimmed = token == null ? "" : token.trim();
@@ -831,6 +1001,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param inputService the input service to read from
      * @return the trimmed input line, or null if end of input
      */
+    /**
+     * Reads a line from the provided input service and trims whitespace.
+     *
+     * @param inputService input source
+     * @return trimmed string or {@code null} if no input is available
+     */
     private String readLineTrimmed(InputService inputService) {
         String line = inputService.readLine();
         return line == null ? null : line.trim();
@@ -842,6 +1018,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * 
      * @param token the string token
      * @return the parsed integer, or null if parsing fails
+     */
+    /**
+     * Parses an integer token, returning {@code null} when parsing fails.
+     *
+     * @param token text to parse
+     * @return integer value or {@code null} if invalid
      */
     private Integer parseInteger(String token) {
         try {
@@ -857,6 +1039,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * 
      * @param token the string token
      * @return the corresponding DotsAndBoxesEdge, or null if unrecognized
+     */
+    /**
+     * Converts user-provided edge identifiers into {@link DotsAndBoxesEdge}
+     * values.
+     *
+     * @param token textual representation of an edge
+     * @return corresponding edge or {@code null} if unrecognized
      */
     private DotsAndBoxesEdge parseEdge(String token) {
         if (token == null || token.isEmpty()) {
@@ -889,6 +1078,14 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param outputService the output service for displaying prompts and messages
      * @return the entered value, or null if the user chose to quit
      */
+    /**
+     * Repeatedly prompts for a non-blank value unless the user quits.
+     *
+     * @param prompt         message presented to the user
+     * @param inputService   input provider
+     * @param outputService  output destination for feedback
+     * @return trimmed user input or {@code null} if the user elects to quit
+     */
     private String promptForRequiredValue(String prompt, InputService inputService, OutputService outputService) {
         while (true) {
             outputService.print(prompt);
@@ -911,6 +1108,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
      * @param count the number of times to repeat
      * @return the resulting string
      */
+    /**
+     * Builds a string comprised of a repeated character.
+     *
+     * @param ch    character to repeat
+     * @param count number of repetitions
+     * @return resulting string (empty when count is non-positive)
+     */
     private String repeat(char ch, int count) {
         if (count <= 0) {
             return "";
@@ -925,6 +1129,10 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
 
     /**
      * Represents a color choice with its key, display name, and ANSI code.
+     */
+    /**
+     * Lightweight value object capturing a selectable color option along with its
+     * normalized key and ANSI code.
      */
     private static final class ColorChoice {
         final String key;

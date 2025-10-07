@@ -28,9 +28,17 @@ import java.util.Objects;
 public class GameController {
 
     /**
-     * Starts the interactive game session and manages replay requests.
+     * Starts the interactive game session, coordinating pre-game configuration,
+     * the main gameplay loop, and replay prompts until the player exits.
      *
-     * @param game the game to control
+     * <p>The supplied {@link GridGame} is expected to fully manage user
+     * interaction via its {@link InputService} and {@link OutputService}.
+     * The controller resets transient state, walks through pre-game menus and
+     * difficulty selection (when supported), and repeatedly drives the game loop
+     * until the player either wins, chooses not to replay, or issues a quit
+     * command.</p>
+     *
+     * @param game the grid-based game instance to orchestrate
      */
     public void run(GridGame<?> game) {
         Objects.requireNonNull(game, "game must not be null");
@@ -181,8 +189,11 @@ public class GameController {
     }
 
     /**
-     * Prompts the user to decide whether to play again.
+     * Prompts the user to decide whether to play another round, honoring the
+     * game's quit command semantics.
      *
+     * @param game          game instance providing quit keyword detection and
+     *                      exit signalling
      * @param inputService  source of user responses
      * @param outputService destination for prompt messages
      * @return {@code true} if the user wants to play again, {@code false} otherwise

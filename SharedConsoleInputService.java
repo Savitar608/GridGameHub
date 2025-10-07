@@ -21,6 +21,10 @@ public final class SharedConsoleInputService extends ConsoleInputService {
         super(scanner);
     }
 
+    /**
+     * Overrides closure to avoid shutting down the shared scanner backing
+     * {@link System#in}.
+     */
     @Override
     public void close() {
         // This is used in a shared context; do not close the scanner or else it will break in some place.

@@ -13,6 +13,12 @@ public final class GameHub {
         // Utility class; prevent instantiation.
     }
 
+    /**
+     * Entry point presenting the hub menu, routing users to the available games,
+     * or exiting when requested.
+     *
+     * @param args command-line arguments (unused)
+     */
     public static void main(String[] args) {
         java.util.Scanner sharedScanner = new java.util.Scanner(System.in);
         SharedConsoleInputService sharedInput = new SharedConsoleInputService(sharedScanner);
@@ -62,6 +68,12 @@ public final class GameHub {
         sharedScanner.close();
     }
 
+    /**
+     * Launches the sliding puzzle game using the shared I/O services.
+     *
+     * @param sharedInput   shared input service instance
+     * @param outputService output destination for hub/game messaging
+     */
     private static void launchSlidingPuzzle(InputService sharedInput, OutputService outputService) {
         outputService.println("\nLoading Sliding Puzzle...\n");
         GridGame<?> game = new SlidingPuzzleGame(sharedInput, outputService);
@@ -69,6 +81,12 @@ public final class GameHub {
         outputService.println("\nReturning to Game Hub...\n");
     }
 
+    /**
+     * Launches the Dots and Boxes game using the shared I/O services.
+     *
+     * @param sharedInput   shared input service instance
+     * @param outputService output destination for hub/game messaging
+     */
     private static void launchDotsAndBoxes(InputService sharedInput, OutputService outputService) {
         outputService.println("\nLoading Dots and Boxes...\n");
         GridGame<?> game = new DotsAndBoxesGame(sharedInput, outputService);
