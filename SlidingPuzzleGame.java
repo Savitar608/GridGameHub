@@ -18,6 +18,7 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
@@ -487,6 +488,34 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
                 }
             }
         }
+        outputService.println("");
+
+        SlidingPuzzleLeaderboard.LeaderboardSnapshot leaderboardSnapshot = SlidingPuzzleLeaderboard.recordScore(
+                currentPlayer.getName(), finalScore, getRows(), getCols(), difficultyLabel,
+                currentPlayer.getDifficultyLevel());
+
+        outputService.println("=== GLOBAL LEADERBOARD ===");
+        List<SlidingPuzzleLeaderboard.LeaderboardEntry> globalTop = leaderboardSnapshot.getTopEntries();
+        if (globalTop.isEmpty()) {
+            outputService.println("No global scores recorded yet.");
+        } else {
+            int position = 1;
+            for (SlidingPuzzleLeaderboard.LeaderboardEntry entry : globalTop) {
+                outputService.println(String.format(Locale.ROOT,
+                        "  %d. %s - %d pts (%s, %s) • %s",
+                        position++, entry.getPlayerName(), entry.getScore(), entry.getDifficultyDisplay(),
+                        entry.getGridLabel(), entry.getRecordedAtIso()));
+            }
+        }
+
+        if (leaderboardSnapshot.getPlayerRank() > 0 && leaderboardSnapshot.getPlayerBest() != null) {
+            SlidingPuzzleLeaderboard.LeaderboardEntry playerBest = leaderboardSnapshot.getPlayerBest();
+            outputService.println(String.format(Locale.ROOT,
+                    "Your best global rank: #%d with %d pts (%s, %s).",
+                    leaderboardSnapshot.getPlayerRank(), playerBest.getScore(), playerBest.getDifficultyDisplay(),
+                    playerBest.getGridLabel()));
+        }
+
         outputService.println("=======================");
         outputService.println("");
     }
