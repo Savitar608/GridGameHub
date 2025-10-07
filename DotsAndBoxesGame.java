@@ -7,9 +7,11 @@
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
     private static final int MIN_SIZE = 2;
@@ -18,10 +20,15 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
     private static final int DEFAULT_COLS = 3;
     private static final int TEAM_SIZE = 2;
     private static final String DOT = "•";
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String[] COLOR_OPTIONS = { "red", "blue", "green", "yellow", "magenta", "cyan", "white" };
 
     private final Map<Player, Integer> playerScores = new LinkedHashMap<>();
     private final Map<Team, Integer> teamScores = new LinkedHashMap<>();
     private final List<Team> matchTeams = new ArrayList<>();
+    private final Map<Player, String> playerColors = new LinkedHashMap<>();
+    private final Map<Team, String> teamColorCodes = new LinkedHashMap<>();
+    private final Set<String> usedColorKeys = new HashSet<>();
 
     private boolean teamMode;
     private int claimedBoxes;
@@ -63,6 +70,9 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         playerScores.clear();
         teamScores.clear();
         matchTeams.clear();
+        playerColors.clear();
+        teamColorCodes.clear();
+        usedColorKeys.clear();
         teamMode = false;
 
         outputService.println("=== Player Setup ===");
@@ -111,6 +121,17 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
             player.setDifficultyLevel(1);
             addPlayer(player);
             playerScores.put(player, 0);
+
+            ColorChoice colorChoice = promptForColor(
+                    String.format(Locale.ROOT,
+                            "Choose a color for %s (%s): ",
+                            player.getName(), formatColorOptions()),
+                    true, inputService, outputService);
+            if (colorChoice == null) {
+                requestExit();
+                return false;
+            }
+            playerColors.put(player, colorChoice.ansiCode);
         }
         return true;
     }
@@ -128,13 +149,18 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
                 requestExit();
                 return false;
             }
-            String teamColor = promptForOptionalValue("Team color (optional): ", inputService, outputService);
-            if (teamColor == null && isExitRequested()) {
+            ColorChoice teamColor = promptForColor(
+                    "Team color (" + formatColorOptions() + "): ",
+                    true, inputService, outputService);
+            if (teamColor == null) {
+                requestExit();
                 return false;
             }
-            Team team = new Team(teamName, teamTag, teamColor);
+
+            Team team = new Team(teamName, teamTag, teamColor.displayName);
             matchTeams.add(team);
             teamScores.put(team, 0);
+            teamColorCodes.put(team, teamColor.ansiCode);
 
             for (int member = 1; member <= TEAM_SIZE; member++) {
                 String prompt = String.format(Locale.ROOT, "Player %d name for %s: ", member, team.getName());
@@ -149,6 +175,7 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
                 player.joinTeam(team);
                 addPlayer(player);
                 playerScores.put(player, 0);
+                playerColors.put(player, teamColor.ansiCode);
             }
         }
         return true;
@@ -251,7 +278,7 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
             topLine.append(DOT);
             for (int c = 0; c < cols; c++) {
                 DotsAndBoxesCell cell = gameGrid.getPiece(r, c);
-                topLine.append(cell.hasEdge(DotsAndBoxesEdge.TOP) ? "───" : "   ");
+                topLine.append(formatHorizontalEdge(cell, DotsAndBoxesEdge.TOP));
                 topLine.append(DOT);
             }
             outputService.println(topLine.toString());
@@ -259,11 +286,17 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
             StringBuilder middleLine = new StringBuilder();
             for (int c = 0; c < cols; c++) {
                 DotsAndBoxesCell cell = gameGrid.getPiece(r, c);
-                middleLine.append(cell.hasEdge(DotsAndBoxesEdge.LEFT) ? "│" : " ");
-                middleLine.append(centerToken(cell.getDisplayToken()));
+                middleLine.append(formatVerticalEdge(cell, DotsAndBoxesEdge.LEFT));
+
+                String token = centerToken(cell.getDisplayToken());
+                Player owner = cell.getOwner();
+                if (owner != null) {
+                    token = applyColor(token, getColorForPlayer(owner));
+                }
+                middleLine.append(token);
             }
             DotsAndBoxesCell lastCell = gameGrid.getPiece(r, cols - 1);
-            middleLine.append(lastCell.hasEdge(DotsAndBoxesEdge.RIGHT) ? "│" : " ");
+            middleLine.append(formatVerticalEdge(lastCell, DotsAndBoxesEdge.RIGHT));
             outputService.println(middleLine.toString());
         }
 
@@ -272,7 +305,7 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         bottomLine.append(DOT);
         for (int c = 0; c < gameGrid.getCols(); c++) {
             DotsAndBoxesCell cell = gameGrid.getPiece(gameGrid.getRows() - 1, c);
-            bottomLine.append(cell.hasEdge(DotsAndBoxesEdge.BOTTOM) ? "───" : "   ");
+            bottomLine.append(formatHorizontalEdge(cell, DotsAndBoxesEdge.BOTTOM));
             bottomLine.append(DOT);
         }
         outputService.println(bottomLine.toString());
@@ -404,7 +437,8 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
 
     private int applyMove(int row, int col, DotsAndBoxesEdge edge, Player player) {
         DotsAndBoxesCell primary = gameGrid.getPiece(row, col);
-        if (!primary.addEdge(edge)) {
+        String edgeColor = getColorForPlayer(player);
+        if (!primary.addEdge(edge, edgeColor)) {
             return -1;
         }
 
@@ -433,7 +467,7 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
 
         if (gameGrid.isValidPosition(neighborRow, neighborCol)) {
             DotsAndBoxesCell neighbor = gameGrid.getPiece(neighborRow, neighborCol);
-            neighbor.addEdge(edge.opposite());
+            neighbor.addEdge(edge.opposite(), edgeColor);
             if (neighbor.isCompleted() && neighbor.claim(player)) {
                 boxesCompleted++;
                 incrementScore(player, 1);
@@ -457,16 +491,155 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         outputService.println("Scores:");
         for (Player player : getPlayers()) {
             int score = playerScores.getOrDefault(player, 0);
-            outputService.println(String.format(Locale.ROOT, "  %s: %d", player.getName(), score));
+            String label = applyColor(player.getName(), getColorForPlayer(player));
+            outputService.println(String.format(Locale.ROOT, "  %s: %d", label, score));
         }
         if (teamMode && !teamScores.isEmpty()) {
             outputService.println("Team totals:");
             for (Team team : matchTeams) {
                 int score = teamScores.getOrDefault(team, 0);
-                outputService.println(String.format(Locale.ROOT, "  %s (%s): %d", team.getName(), team.getTag(), score));
+                String label = String.format(Locale.ROOT, "%s (%s)", team.getName(), team.getTag());
+                outputService.println(String.format(Locale.ROOT, "  %s: %d",
+                        applyColor(label, teamColorCodes.get(team)), score));
             }
         }
         outputService.println("");
+    }
+
+    private String getColorForPlayer(Player player) {
+        if (player == null) {
+            return ANSI_RESET;
+        }
+        String color = playerColors.get(player);
+        if (color != null) {
+            return color;
+        }
+        Team team = player.getTeam().orElse(null);
+        if (team != null) {
+            String teamCode = teamColorCodes.get(team);
+            if (teamCode != null) {
+                return teamCode;
+            }
+            ColorChoice fallback = resolveColorChoice(team.getColor());
+            if (fallback != null) {
+                teamColorCodes.put(team, fallback.ansiCode);
+                return fallback.ansiCode;
+            }
+        }
+        return ANSI_RESET;
+    }
+
+    private String formatHorizontalEdge(DotsAndBoxesCell cell, DotsAndBoxesEdge edge) {
+        if (cell != null && cell.hasEdge(edge)) {
+            return applyColor("───", cell.getEdgeColor(edge));
+        }
+        return "   ";
+    }
+
+    private String formatVerticalEdge(DotsAndBoxesCell cell, DotsAndBoxesEdge edge) {
+        if (cell != null && cell.hasEdge(edge)) {
+            return applyColor("│", cell.getEdgeColor(edge));
+        }
+        return " ";
+    }
+
+    private String applyColor(String text, String colorCode) {
+        if (text == null) {
+            return null;
+        }
+        if (colorCode == null || colorCode.isEmpty() || ANSI_RESET.equals(colorCode)) {
+            return text;
+        }
+        return colorCode + text + ANSI_RESET;
+    }
+
+    private String formatColorOptions() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < COLOR_OPTIONS.length; i++) {
+            ColorChoice choice = resolveColorChoice(COLOR_OPTIONS[i]);
+            String label = choice != null ? applyColor(choice.displayName, choice.ansiCode)
+                    : capitalize(COLOR_OPTIONS[i]);
+            if (choice != null && usedColorKeys.contains(choice.key)) {
+                label += " (taken)";
+            }
+            builder.append(label);
+            if (i < COLOR_OPTIONS.length - 1) {
+                builder.append(", ");
+            }
+        }
+        return builder.toString();
+    }
+
+    private ColorChoice promptForColor(String prompt, boolean requireUnique, InputService inputService,
+            OutputService outputService) {
+        while (true) {
+            outputService.print(prompt);
+            String response = readLineTrimmed(inputService);
+            if (response == null || isQuitCommand(response)) {
+                return null;
+            }
+            ColorChoice choice = resolveColorChoice(response);
+            if (choice == null) {
+                outputService.println("Unknown color. Available options: " + formatColorOptions());
+                continue;
+            }
+            if (requireUnique && usedColorKeys.contains(choice.key)) {
+                outputService.println("That color is already taken. Available options: " + formatColorOptions());
+                continue;
+            }
+            if (requireUnique) {
+                usedColorKeys.add(choice.key);
+            }
+            return choice;
+        }
+    }
+
+    private ColorChoice resolveColorChoice(String input) {
+        if (input == null) {
+            return null;
+        }
+        String normalized = input.trim().toLowerCase(Locale.ROOT);
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        switch (normalized) {
+            case "r":
+            case "red":
+                return newColorChoice("red", "\u001B[31m");
+            case "b":
+            case "blue":
+                return newColorChoice("blue", "\u001B[34m");
+            case "g":
+            case "green":
+                return newColorChoice("green", "\u001B[32m");
+            case "y":
+            case "yellow":
+                return newColorChoice("yellow", "\u001B[33m");
+            case "m":
+            case "magenta":
+            case "purple":
+                return newColorChoice("magenta", "\u001B[35m");
+            case "c":
+            case "cyan":
+                return newColorChoice("cyan", "\u001B[36m");
+            case "w":
+            case "white":
+                return newColorChoice("white", "\u001B[37m");
+            default:
+                return null;
+        }
+    }
+
+    private ColorChoice newColorChoice(String key, String ansiCode) {
+        return new ColorChoice(key, capitalize(key), ansiCode);
+    }
+
+    private String capitalize(String value) {
+        if (value == null || value.isEmpty()) {
+            return "";
+        }
+        String lower = value.toLowerCase(Locale.ROOT);
+        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 
     private int getTotalBoxes() {
@@ -534,16 +707,6 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
-    private String promptForOptionalValue(String prompt, InputService inputService, OutputService outputService) {
-        outputService.print(prompt);
-        String response = readLineTrimmed(inputService);
-        if (response == null || isQuitCommand(response)) {
-            requestExit();
-            return null;
-        }
-        return response.isEmpty() ? null : response;
-    }
-
     private String repeat(char ch, int count) {
         if (count <= 0) {
             return "";
@@ -553,5 +716,17 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
             builder.append(ch);
         }
         return builder.toString();
+    }
+
+    private static final class ColorChoice {
+        final String key;
+        final String displayName;
+        final String ansiCode;
+
+        private ColorChoice(String key, String displayName, String ansiCode) {
+            this.key = key;
+            this.displayName = displayName;
+            this.ansiCode = ansiCode;
+        }
     }
 }

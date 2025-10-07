@@ -3,16 +3,16 @@
  * been drawn and which player, if any, has claimed the box.
  */
 
-import java.util.EnumSet;
+import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Objects;
 
 public final class DotsAndBoxesCell implements GamePiece {
-    private final EnumSet<DotsAndBoxesEdge> edges;
+    private final EnumMap<DotsAndBoxesEdge, String> edges;
     private Player owner;
 
     public DotsAndBoxesCell() {
-        this.edges = EnumSet.noneOf(DotsAndBoxesEdge.class);
+        this.edges = new EnumMap<>(DotsAndBoxesEdge.class);
         this.owner = null;
     }
 
@@ -21,10 +21,16 @@ public final class DotsAndBoxesCell implements GamePiece {
      * not previously present and is now registered.
      *
      * @param edge edge to add
+     * @param color color code controlling how the edge is rendered
      * @return {@code true} when edge state changed
      */
-    public boolean addEdge(DotsAndBoxesEdge edge) {
-        return edges.add(Objects.requireNonNull(edge, "edge must not be null"));
+    public boolean addEdge(DotsAndBoxesEdge edge, String color) {
+        Objects.requireNonNull(edge, "edge must not be null");
+        if (edges.containsKey(edge)) {
+            return false;
+        }
+        edges.put(edge, color == null ? "" : color);
+        return true;
     }
 
     /**
@@ -34,7 +40,17 @@ public final class DotsAndBoxesCell implements GamePiece {
      * @return {@code true} when the edge exists
      */
     public boolean hasEdge(DotsAndBoxesEdge edge) {
-        return edges.contains(edge);
+        return edges.containsKey(edge);
+    }
+
+    /**
+     * Retrieves the color associated with the supplied edge if present.
+     *
+     * @param edge edge to inspect
+     * @return ANSI color code or {@code null} when no edge exists
+     */
+    public String getEdgeColor(DotsAndBoxesEdge edge) {
+        return edges.get(edge);
     }
 
     /**
