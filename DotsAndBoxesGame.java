@@ -1,3 +1,4 @@
+
 /**
  * File: DotsAndBoxesGame.java
  * Description: Console implementation of the classic Dots and Boxes game built on the
@@ -19,6 +20,7 @@ import java.util.Set;
  * tracking.
  */
 public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
+    // Game configuration constants
     private static final int MIN_SIZE = 2;
     private static final int MAX_SIZE = 20;
     private static final int DEFAULT_ROWS = 3;
@@ -28,6 +30,7 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String[] COLOR_OPTIONS = { "red", "blue", "green", "yellow", "magenta", "cyan", "white" };
 
+    // Game state tracking
     private final Map<Player, Integer> playerScores = new LinkedHashMap<>();
     private final Map<Team, Integer> teamScores = new LinkedHashMap<>();
     private final List<Team> matchTeams = new ArrayList<>();
@@ -35,14 +38,26 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
     private final Map<Team, String> teamColorCodes = new LinkedHashMap<>();
     private final Set<String> usedColorKeys = new HashSet<>();
 
+    // Game flow tracking
     private boolean teamMode;
     private int claimedBoxes;
 
+    /**
+     * Creates a new Dots and Boxes game instance with default input and output
+     * services.
+     */
     public DotsAndBoxesGame() {
         super(DotsAndBoxesCell.class, DEFAULT_ROWS, DEFAULT_COLS);
         initializeBoard();
     }
 
+    /**
+     * Creates a new Dots and Boxes game instance with the specified input and
+     * output services.
+     * 
+     * @param inputService  the input service for reading user input
+     * @param outputService the output service for displaying prompts and messages
+     */
     public DotsAndBoxesGame(InputService inputService, OutputService outputService) {
         super(DotsAndBoxesCell.class, DEFAULT_ROWS, DEFAULT_COLS, inputService, outputService);
         initializeBoard();
@@ -113,6 +128,14 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return true;
     }
 
+    /**
+     * Configures a standard head-to-head match between two individual players.
+     *
+     * @param inputService  the input service for reading user input
+     * @param outputService the output service for displaying prompts and messages
+     * @return {@code true} if head-to-head mode was successfully configured,
+     *         {@code false} otherwise
+     */
     private boolean configureHeadToHead(InputService inputService, OutputService outputService) {
         for (int i = 1; i <= 2; i++) {
             String prompt = String.format(Locale.ROOT, "Enter name for Player %d (or 'quit'): ", i);
@@ -141,7 +164,16 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return true;
     }
 
+    /**
+     * Configures the team mode settings, allowing for team-based play.
+     *
+     * @param inputService  the input service for reading user input
+     * @param outputService the output service for displaying prompts and messages
+     * @return {@code true} if team mode was successfully configured, {@code false}
+     *         otherwise
+     */
     private boolean configureTeamMode(InputService inputService, OutputService outputService) {
+        List<List<Player>> teamPlayers = new ArrayList<>();
         for (int teamIndex = 1; teamIndex <= 2; teamIndex++) {
             outputService.println(String.format(Locale.ROOT, "-- Team %d Configuration --", teamIndex));
             String teamName = promptForRequiredValue("Team name: ", inputService, outputService);
@@ -167,6 +199,8 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
             teamScores.put(team, 0);
             teamColorCodes.put(team, teamColor.ansiCode);
 
+            List<Player> members = new ArrayList<>();
+
             for (int member = 1; member <= TEAM_SIZE; member++) {
                 String prompt = String.format(Locale.ROOT, "Player %d name for %s: ", member, team.getName());
                 String playerName = promptForRequiredValue(prompt, inputService, outputService);
@@ -178,12 +212,39 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
                 player.setName(playerName);
                 player.setDifficultyLevel(1);
                 player.joinTeam(team);
-                addPlayer(player);
-                playerScores.put(player, 0);
+                members.add(player);
                 playerColors.put(player, teamColor.ansiCode);
             }
+
+            teamPlayers.add(members);
         }
+
+        registerAlternatingTeamPlayers(teamPlayers);
         return true;
+    }
+
+    /**
+     * Registers players for alternating team play.
+     *
+     * @param teamPlayers the list of teams and their players
+     */
+    private void registerAlternatingTeamPlayers(List<List<Player>> teamPlayers) {
+        players.clear();
+
+        int maxMembers = 0;
+        for (List<Player> members : teamPlayers) {
+            maxMembers = Math.max(maxMembers, members.size());
+        }
+
+        for (int slot = 0; slot < maxMembers; slot++) {
+            for (List<Player> members : teamPlayers) {
+                if (slot < members.size()) {
+                    Player player = members.get(slot);
+                    addPlayer(player);
+                    playerScores.put(player, 0);
+                }
+            }
+        }
     }
 
     @Override
@@ -246,7 +307,8 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         outputService.println("1. Players take turns drawing a single edge between two dots.");
         outputService.println("2. Completing the fourth edge around a box claims it and awards a point.");
         outputService.println("3. Completing a box grants an extra turn. Otherwise, play passes to the next player.");
-        outputService.println("4. The player or team with the most boxes when the board is full wins.");
+        outputService.println("4. In team mode, turns alternate between teams—teammates never play consecutively.");
+        outputService.println("5. The player or team with the most boxes when the board is full wins.");
         outputService.println("Type 'quit' at any prompt to exit the game.\n");
     }
 
@@ -431,6 +493,9 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+    /**
+     * Initializes or resets the game board to an empty state.
+     */
     private void initializeBoard() {
         for (int r = 0; r < gameGrid.getRows(); r++) {
             for (int c = 0; c < gameGrid.getCols(); c++) {
@@ -440,6 +505,16 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         claimedBoxes = 0;
     }
 
+    /**
+     * Applies a move to the game board.
+     *
+     * @param row    the row of the cell
+     * @param col    the column of the cell
+     * @param edge   the edge being claimed
+     * @param player the player making the move
+     * @return the number of boxes completed by this move, or -1 if the move is
+     *         invalid
+     */
     private int applyMove(int row, int col, DotsAndBoxesEdge edge, Player player) {
         DotsAndBoxesCell primary = gameGrid.getPiece(row, col);
         String edgeColor = getColorForPlayer(player);
@@ -483,6 +558,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return boxesCompleted;
     }
 
+    /**
+     * Increments the score for the specified player and their team if applicable.
+     *
+     * @param player the player whose score to increment
+     * @param delta  the amount to increment the score by
+     */
     private void incrementScore(Player player, int delta) {
         playerScores.merge(player, delta, Integer::sum);
         player.getTeam().ifPresent(team -> {
@@ -492,6 +573,11 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         });
     }
 
+    /**
+     * Displays the current scores for all players and teams.
+     * 
+     * @param outputService
+     */
     private void displayScores(OutputService outputService) {
         outputService.println("Scores:");
         for (Player player : getPlayers()) {
@@ -511,6 +597,12 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         outputService.println("");
     }
 
+    /**
+     * Gets the ANSI color code for the specified player.
+     * 
+     * @param player the player whose color to retrieve
+     * @return the ANSI color code, or reset code if none assigned
+     */
     private String getColorForPlayer(Player player) {
         if (player == null) {
             return ANSI_RESET;
@@ -534,6 +626,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return ANSI_RESET;
     }
 
+    /**
+     * Formats a horizontal edge for display.
+     * 
+     * @param cell the cell containing the edge
+     * @param edge the edge to format
+     * @return the formatted edge string
+     */
     private String formatHorizontalEdge(DotsAndBoxesCell cell, DotsAndBoxesEdge edge) {
         if (cell != null && cell.hasEdge(edge)) {
             return applyColor("───", cell.getEdgeColor(edge));
@@ -541,6 +640,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return "   ";
     }
 
+    /**
+     * Formats a vertical edge for display.
+     * 
+     * @param cell the cell containing the edge
+     * @param edge the edge to format
+     * @return the formatted edge string
+     */
     private String formatVerticalEdge(DotsAndBoxesCell cell, DotsAndBoxesEdge edge) {
         if (cell != null && cell.hasEdge(edge)) {
             return applyColor("│", cell.getEdgeColor(edge));
@@ -548,6 +654,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return " ";
     }
 
+    /**
+     * Applies ANSI color codes to the given text.
+     * 
+     * @param text      the text to color
+     * @param colorCode the ANSI color code to apply
+     * @return the colored text
+     */
     private String applyColor(String text, String colorCode) {
         if (text == null) {
             return null;
@@ -558,6 +671,11 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return colorCode + text + ANSI_RESET;
     }
 
+    /**
+     * Formats the available color options for display.
+     * 
+     * @return a comma-separated string of color options
+     */
     private String formatColorOptions() {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < COLOR_OPTIONS.length; i++) {
@@ -575,6 +693,15 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return builder.toString();
     }
 
+    /**
+     * Prompts the user to select a color.
+     * 
+     * @param prompt        the prompt message
+     * @param requireUnique whether the color must be unique among players
+     * @param inputService  the input service for reading user input
+     * @param outputService the output service for displaying prompts and messages
+     * @return the selected ColorChoice, or null if the user chose to quit
+     */
     private ColorChoice promptForColor(String prompt, boolean requireUnique, InputService inputService,
             OutputService outputService) {
         while (true) {
@@ -599,6 +726,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+
+    /**
+     * Resolves a color choice from user input.
+     * 
+     * @param input the user input
+     * @return the corresponding ColorChoice, or null if unrecognized
+     */
     private ColorChoice resolveColorChoice(String input) {
         if (input == null) {
             return null;
@@ -635,10 +769,25 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+
+    /**
+     * Creates a new ColorChoice instance.
+     * 
+     * @param key      the key for the color choice
+     * @param ansiCode the ANSI code for the color
+     * @return a new ColorChoice instance
+     */
     private ColorChoice newColorChoice(String key, String ansiCode) {
         return new ColorChoice(key, capitalize(key), ansiCode);
     }
 
+
+    /**
+     * Capitalizes the first letter of the given string.
+     * 
+     * @param value the string to capitalize
+     * @return the capitalized string, or an empty string if the input is null or empty
+     */
     private String capitalize(String value) {
         if (value == null || value.isEmpty()) {
             return "";
@@ -647,10 +796,23 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 
+
+    /**
+     * Gets the total number of boxes on the board.
+     * 
+     * @return the total number of boxes
+     */
     private int getTotalBoxes() {
         return gameGrid.getRows() * gameGrid.getCols();
     }
 
+
+    /**
+     * Centers a token string within a 3-character width.
+     * 
+     * @param token the token string
+     * @return the centered token string
+     */
     private String centerToken(String token) {
         String trimmed = token == null ? "" : token.trim();
         if (trimmed.length() >= 3) {
@@ -662,11 +824,25 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return repeat(' ', padStart) + trimmed + repeat(' ', padEnd);
     }
 
+
+    /**
+     * Reads a line of input and trims whitespace.
+     * 
+     * @param inputService the input service to read from
+     * @return the trimmed input line, or null if end of input
+     */
     private String readLineTrimmed(InputService inputService) {
         String line = inputService.readLine();
         return line == null ? null : line.trim();
     }
 
+
+    /** 
+     * Parses an integer from a string token.
+     * 
+     * @param token the string token
+     * @return the parsed integer, or null if parsing fails
+     */
     private Integer parseInteger(String token) {
         try {
             return Integer.parseInt(token);
@@ -675,6 +851,13 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+
+    /**
+     * Parses a DotsAndBoxesEdge from a string token.
+     * 
+     * @param token the string token
+     * @return the corresponding DotsAndBoxesEdge, or null if unrecognized
+     */
     private DotsAndBoxesEdge parseEdge(String token) {
         if (token == null || token.isEmpty()) {
             return null;
@@ -698,6 +881,14 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+    /**
+     * Prompts the user for a required non-blank value.
+     * 
+     * @param prompt        the prompt message
+     * @param inputService  the input service for reading user input
+     * @param outputService the output service for displaying prompts and messages
+     * @return the entered value, or null if the user chose to quit
+     */
     private String promptForRequiredValue(String prompt, InputService inputService, OutputService outputService) {
         while (true) {
             outputService.print(prompt);
@@ -712,6 +903,14 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         }
     }
 
+
+    /**
+     * Repeats a character a specified number of times.
+     * 
+     * @param ch    the character to repeat
+     * @param count the number of times to repeat
+     * @return the resulting string
+     */
     private String repeat(char ch, int count) {
         if (count <= 0) {
             return "";
@@ -723,6 +922,10 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         return builder.toString();
     }
 
+
+    /**
+     * Represents a color choice with its key, display name, and ANSI code.
+     */
     private static final class ColorChoice {
         final String key;
         final String displayName;
