@@ -1,8 +1,3 @@
-/**
- * Persistent leaderboard management for the Sliding Puzzle game. Stores player
- * scores in a local JSON file and exposes helper methods for displaying the top
- * performers.
- */
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +17,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Persistent leaderboard management for the Sliding Puzzle game. Stores player
+ * scores in a local JSON file and exposes helper methods for displaying the top
+ * performers.
+ */
 public final class SlidingPuzzleLeaderboard {
     private static final Path LEADERBOARD_FILE = Paths.get("sliding_puzzle_leaderboard.json");
     private static final int MAX_HISTORY_ENTRIES = 500;
