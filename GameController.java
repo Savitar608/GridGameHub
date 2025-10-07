@@ -41,10 +41,10 @@ public class GameController {
         InputService inputService = game.getInputService();
         OutputService outputService = game.getOutputService();
 
-    // Reset transient state and show the welcome/instructions for the game
-    game.resetGameState();
-    game.displayWelcomeMessage();
-    configurePlayer(game, inputService, outputService);
+        // Reset transient state and show the welcome/instructions for the game
+        game.resetGameState();
+        game.displayWelcomeMessage();
+        configurePlayer(game, inputService, outputService);
 
         if (game.isExitRequested()) {
             outputService.println("Exiting game. Goodbye!");
@@ -130,7 +130,7 @@ public class GameController {
             return;
         }
 
-    // For multiplayer games, also capture the second player's name
+        // For multiplayer games, also capture the second player's name
         if (game instanceof DotsAndBoxesGame) {
             DotsAndBoxesGame dotsGame = (DotsAndBoxesGame) game;
             outputService.print("Enter Player 2 name (default: Player 2): ");
@@ -267,61 +267,64 @@ public class GameController {
      *         player exits the pre-game menu
      */
     private boolean presentPreGameOptions(GridGame<?> game,
-                                      InputService inputService,
-                                      OutputService outputService) {
-    // Loop until player chooses to start or quit the pre-game menu
-    while (!game.isExitRequested()) {
+            InputService inputService,
+            OutputService outputService) {
+        // Loop until player chooses to start or quit the pre-game menu
+        while (!game.isExitRequested()) {
 
-        outputService.println("");
-        outputService.println("Choose an option:");
-        outputService.println("  [1] Start the game");
-        if (game.canRegenerateBoard()) {
-            outputService.println("  [2] Regenerate the board");
-            outputService.println("  [3] View top scores");
-        } else {
-            outputService.println("  [2] View top scores");
-        }
-        outputService.println("  [q] Quit");
-        outputService.print("> ");
+            outputService.println("");
+            outputService.println("Choose an option:");
+            outputService.println("  [1] Start the game");
+            if (game.canRegenerateBoard()) {
+                outputService.println("  [2] Regenerate the board");
+                outputService.println("  [3] View top scores");
+            } else {
+                outputService.println("  [2] View top scores");
+            }
+            outputService.println("  [q] Quit");
+            outputService.print("> ");
 
-        String choice = inputService.readLine();
-        if (choice == null) { game.requestExit(); return false; }
-        choice = choice.trim().toLowerCase();
-
-        // Map numeric menu entries to the textual commands used in the
-        // subsequent switch. This simplifies user input handling.
-        if (choice.equals("1")) {
-            choice = "start";
-        } else if (choice.equals("2")) {
-            choice = game.canRegenerateBoard() ? "regen" : "scores";
-        } else if (choice.equals("3") && game.canRegenerateBoard()) {
-            choice = "scores";
-        } else if (choice.equals("q")) {
-            choice = "quit";
-        }
-
-        switch (choice) {
-            case "start":
-                return true;
-            case "regen":
-                if (game.canRegenerateBoard()) {
-                    game.initializeGame(); // regenerate once more before starting
-                } else {
-                    outputService.println("Regenerate is not available for this game.");
-                }
-                break;
-            case "scores":
-                displayPlayerTopScores(game, outputService);
-                break;
-            case "quit":
+            String choice = inputService.readLine();
+            if (choice == null) {
                 game.requestExit();
                 return false;
-            default:
-                outputService.println("Invalid option. Please choose again.");
-                break;
+            }
+            choice = choice.trim().toLowerCase();
+
+            // Map numeric menu entries to the textual commands used in the
+            // subsequent switch. This simplifies user input handling.
+            if (choice.equals("1")) {
+                choice = "start";
+            } else if (choice.equals("2")) {
+                choice = game.canRegenerateBoard() ? "regen" : "scores";
+            } else if (choice.equals("3") && game.canRegenerateBoard()) {
+                choice = "scores";
+            } else if (choice.equals("q")) {
+                choice = "quit";
+            }
+
+            switch (choice) {
+                case "start":
+                    return true;
+                case "regen":
+                    if (game.canRegenerateBoard()) {
+                        game.initializeGame(); // regenerate once more before starting
+                    } else {
+                        outputService.println("Regenerate is not available for this game.");
+                    }
+                    break;
+                case "scores":
+                    displayPlayerTopScores(game, outputService);
+                    break;
+                case "quit":
+                    game.requestExit();
+                    return false;
+                default:
+                    outputService.println("Invalid option. Please choose again.");
+                    break;
+            }
         }
-    }
-    return false;
+        return false;
     }
 
     /**
