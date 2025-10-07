@@ -43,9 +43,9 @@ public class GameController {
 
         game.resetGameState();
         game.displayWelcomeMessage();
-        configurePlayer(game, inputService, outputService);
+        boolean continueGame = game.configurePlayers(inputService, outputService);
 
-        if (game.isExitRequested()) {
+        if (!continueGame || game.isExitRequested()) {
             outputService.println("Exiting game. Goodbye!");
             inputService.close();
             return;
@@ -60,9 +60,11 @@ public class GameController {
                 break;
             }
 
-            configureDifficulty(game, inputService, outputService);
-            if (game.isExitRequested()) {
-                break;
+            if (game.supportsDifficultySelection()) {
+                configureDifficulty(game, inputService, outputService);
+                if (game.isExitRequested()) {
+                    break;
+                }
             }
 
             game.initializeGame();
@@ -106,23 +108,8 @@ public class GameController {
             keepPlaying = promptPlayAgain(game, inputService, outputService);
         }
 
-        outputService.println("Thanks for playing the Sliding Puzzle Game. Goodbye!");
+    outputService.println("Thanks for playing! Goodbye!");
         inputService.close();
-    }
-
-    /**
-     * Captures the player's name using the configured input and output services.
-     *
-     * @param game          the game providing player context
-     * @param inputService  input source for player responses
-     * @param outputService destination for prompts and feedback
-     */
-    private void configurePlayer(GridGame<?> game, InputService inputService, OutputService outputService) {
-        Player player = game.getPlayer();
-        boolean continueGame = player.promptForName(inputService, outputService);
-        if (!continueGame) {
-            game.requestExit();
-        }
     }
 
     /**
@@ -242,8 +229,12 @@ public class GameController {
      */
     private boolean presentPreGameOptions(GridGame<?> game, InputService inputService, OutputService outputService) {
         while (!game.isExitRequested()) {
-            outputService.println(
-                    "Choose an option: [start] Begin game, [regen] Regenerate board, [scores] View top scores, [quit] Exit");
+            StringBuilder menu = new StringBuilder("Choose an option: [start] Begin game, [regen] Regenerate board");
+            if (game.supportsTopScores()) {
+                menu.append(", [scores] View top scores");
+            }
+            menu.append(", [quit] Exit");
+            outputService.println(menu.toString());
             String choice = inputService.readLine();
 
             if (choice == null || game.isQuitCommand(choice)) {
@@ -269,7 +260,11 @@ public class GameController {
                 case "scores":
                 case "score":
                 case "top":
-                    displayPlayerTopScores(game, outputService);
+                    if (game.supportsTopScores()) {
+                        displayPlayerTopScores(game, outputService);
+                    } else {
+                        outputService.println("Top scores are not tracked for this game mode.");
+                    }
                     break;
                 default:
                     outputService.println("Please choose 'start', 'regen', 'scores', or 'quit'.");
@@ -286,14 +281,18 @@ public class GameController {
      * @param outputService destination for score output
      */
     private void displayPlayerTopScores(GridGame<?> game, OutputService outputService) {
-        Player player = game.getPlayer();
+        List<Player> players = game.getPlayers();
         outputService.println("");
-        outputService.println("=== YOUR TOP SCORES ===");
+        outputService.println("=== TOP SCORES ===");
 
-        Map<Integer, Map<String, Integer>> allScores = player.getAllTopScores();
-        if (allScores.isEmpty()) {
-            outputService.println("No scores recorded yet.");
-        } else {
+        for (Player player : players) {
+            Map<Integer, Map<String, Integer>> allScores = player.getAllTopScores();
+            outputService.println(player.getName() + ":");
+            if (allScores.isEmpty()) {
+                outputService.println("  No scores recorded yet.");
+                continue;
+            }
+
             List<Integer> levels = new ArrayList<>(allScores.keySet());
             Collections.sort(levels);
             for (int level : levels) {
@@ -303,7 +302,7 @@ public class GameController {
                 }
 
                 String difficultyName = game.getDifficultyManager().getDifficultyName(level);
-                outputService.println(difficultyName + " (Level " + level + "):");
+                outputService.println("  " + difficultyName + " (Level " + level + "):" );
 
                 List<String> gridSizes = new ArrayList<>(gridScores.keySet());
                 gridSizes.sort((a, b) -> {
@@ -316,7 +315,7 @@ public class GameController {
                 });
 
                 for (String gridSize : gridSizes) {
-                    outputService.println("  " + gridSize + " -> " + gridScores.get(gridSize));
+                    outputService.println("    " + gridSize + " -> " + gridScores.get(gridSize));
                 }
             }
         }

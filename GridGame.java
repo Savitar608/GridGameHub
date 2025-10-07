@@ -16,6 +16,9 @@
  * - Delegated game loop coordination through {@link GameController}
  */
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -26,7 +29,8 @@ import java.util.Objects;
 public abstract class GridGame<T extends GamePiece> {
     protected Grid<T> gameGrid;
     protected boolean isGameOver;
-    protected Player player;
+    protected final List<Player> players;
+    private int activePlayerIndex;
     protected final DifficultyManager difficultyManager;
     private final InputService inputService;
     private final OutputService outputService;
@@ -60,7 +64,9 @@ public abstract class GridGame<T extends GamePiece> {
             OutputService outputService) {
         this.gameGrid = new Grid<>(componentType, rows, cols);
         this.isGameOver = false;
-        this.player = new Player();
+        this.players = new ArrayList<>();
+        this.players.add(new Player());
+        this.activePlayerIndex = 0;
         this.difficultyManager = new DifficultyManager();
         this.inputService = Objects.requireNonNull(inputService, "inputService must not be null");
         this.outputService = Objects.requireNonNull(outputService, "outputService must not be null");
@@ -154,6 +160,7 @@ public abstract class GridGame<T extends GamePiece> {
      */
     public void resetGameState() {
         this.isGameOver = false;
+        this.activePlayerIndex = 0;
     }
 
     /**
@@ -225,7 +232,117 @@ public abstract class GridGame<T extends GamePiece> {
      * @return player configuration
      */
     public Player getPlayer() {
-        return player;
+        ensurePrimaryPlayer();
+        return players.get(0);
+    }
+
+    /**
+     * Provides an immutable view of the registered players.
+     *
+     * @return ordered list of players participating in the game
+     */
+    public List<Player> getPlayers() {
+        return Collections.unmodifiableList(players);
+    }
+
+    /**
+     * Returns the player whose turn it currently is.
+     *
+     * @return active player
+     */
+    public Player getActivePlayer() {
+        ensurePrimaryPlayer();
+        if (activePlayerIndex < 0 || activePlayerIndex >= players.size()) {
+            activePlayerIndex = 0;
+        }
+        return players.get(activePlayerIndex);
+    }
+
+    /**
+     * Advances play to the next registered player.
+     */
+    protected void advanceToNextPlayer() {
+        if (players.isEmpty()) {
+            return;
+        }
+        activePlayerIndex = (activePlayerIndex + 1) % players.size();
+    }
+
+    /**
+     * Updates the active player index.
+     *
+     * @param index zero-based index of the next active player
+     */
+    protected void setActivePlayerIndex(int index) {
+        if (players.isEmpty()) {
+            activePlayerIndex = 0;
+            return;
+        }
+        if (index < 0 || index >= players.size()) {
+            throw new IllegalArgumentException("Active player index out of bounds");
+        }
+        activePlayerIndex = index;
+    }
+
+    /**
+     * Removes all previously registered players and resets the active player
+     * pointer.
+     */
+    protected void clearPlayers() {
+        players.clear();
+        activePlayerIndex = 0;
+    }
+
+    /**
+     * Registers a player for participation in this game.
+     *
+     * @param player player to add
+     */
+    protected void addPlayer(Player player) {
+        players.add(Objects.requireNonNull(player, "player must not be null"));
+    }
+
+    /**
+     * Default player configuration logic which prompts for a single participant.
+     * Games supporting multiple participants can override for richer behavior.
+     *
+     * @param inputService  input service used for prompts
+     * @param outputService output service used for messaging
+     * @return {@code true} if gameplay should continue, {@code false} otherwise
+     */
+    protected boolean configurePlayers(InputService inputService, OutputService outputService) {
+        Player primaryPlayer = getPlayer();
+        boolean continueGame = primaryPlayer.promptForName(inputService, outputService);
+        if (!continueGame) {
+            requestExit();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Indicates whether the game supports difficulty selection.
+     *
+     * @return {@code true} when the difficulty menu should be displayed
+     */
+    public boolean supportsDifficultySelection() {
+        return true;
+    }
+
+    /**
+     * Indicates whether player-specific top scores should be displayed.
+     *
+     * @return {@code true} when the top score menu should be available
+     */
+    public boolean supportsTopScores() {
+        return true;
+    }
+
+    private void ensurePrimaryPlayer() {
+        if (players.isEmpty()) {
+            players.add(new Player());
+            activePlayerIndex = 0;
+        }
     }
 
     /**
