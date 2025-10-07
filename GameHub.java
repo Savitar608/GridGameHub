@@ -1,4 +1,10 @@
 /**
+ * File: GameHub.java
+ * Description: Central launcher providing a menu for choosing between the console
+ *              games built on the shared grid framework.
+ */
+
+/**
  * Central launcher presenting a simple menu for selecting between the available
  * games built on the grid framework.
  */

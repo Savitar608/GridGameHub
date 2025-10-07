@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- *
  * File: ConsoleInputService.java
  * Description: Console-backed implementation of {@link InputService} powered by
  *              {@link java.util.Scanner}. Provides line-based input retrieval

@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- * 
  * File: GameController.java
  * Description: Controller class responsible for orchestrating the flow of a grid-based game.
  *              Handles the high-level game loop, replay prompts, and coordinates

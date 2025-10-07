@@ -1,7 +1,4 @@
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- * 
  * File: SlidingPuzzle.java
  * Description: A complete sliding puzzle game implementation featuring an extensible
  *              grid-based game framework with support for multiple difficulty levels,

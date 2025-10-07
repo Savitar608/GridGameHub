@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- * 
  * File: Player.java
  * Description: Player class for managing player information including name,
  *              difficulty level preferences, and top scores tracking.

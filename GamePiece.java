@@ -1,7 +1,4 @@
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- *
  * File: GamePiece.java
  * Description: Core abstraction for board game pieces, enabling concrete games
  *              to supply custom metadata and rendering for their individual pieces.

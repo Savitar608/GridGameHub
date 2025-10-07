@@ -1,7 +1,4 @@
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- *
  * File: OutputService.java
  * Description: Interface abstraction for output operations, allowing the
  *              console renderer to be replaced during testing or when targeting

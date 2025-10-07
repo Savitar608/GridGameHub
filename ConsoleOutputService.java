@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- *
  * File: ConsoleOutputService.java
  * Description: Console-backed implementation of {@link OutputService} that
  *              delegates all writes to a {@link java.io.PrintStream}.

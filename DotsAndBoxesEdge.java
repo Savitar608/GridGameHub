@@ -1,4 +1,10 @@
 /**
+ * File: DotsAndBoxesEdge.java
+ * Description: Enumeration capturing the four edges around a Dots and Boxes cell and
+ *              providing helpers for navigating to opposing edges.
+ */
+
+/**
  * Enumeration of the four possible edges surrounding a single box in the
  * Dots and Boxes game. Provides utility helpers for navigating to the opposite
  * edge which is shared by an adjacent box.
@@ -8,12 +14,6 @@ public enum DotsAndBoxesEdge {
     RIGHT,
     BOTTOM,
     LEFT;
-
-    /**
-     * Returns the opposing edge that would be shared by an adjacent box.
-     *
-     * @return opposite edge
-     */
     public DotsAndBoxesEdge opposite() {
         switch (this) {
             case TOP:

@@ -1,4 +1,8 @@
-
+/**
+ * File: DotsAndBoxesGame.java
+ * Description: Console implementation of the classic Dots and Boxes game built on the
+ *              shared GridGame framework with support for teams, scoring, and colored edges.
+ */
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

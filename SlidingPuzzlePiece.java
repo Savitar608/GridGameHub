@@ -1,7 +1,4 @@
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- *
  * File: SlidingPuzzlePiece.java
  * Description: Concrete {@link GamePiece} representation for numbered tiles in
  * the sliding puzzle. Encapsulates the tile's numeric value and

@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- * 
  * File: DifficultyManager.java
  * Description: Encapsulates the management of difficulty levels for grid-based games.
  *              Provides utilities for defining, querying, and enumerating supported

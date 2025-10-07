@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- * 
  * File: Grid.java
  * Description: Generic grid class for managing 2D grid structures in grid-based games.
  *              Provides core functionality for grid operations, validation, and display.

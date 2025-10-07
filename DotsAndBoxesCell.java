@@ -1,4 +1,8 @@
-
+/**
+ * File: DotsAndBoxesCell.java
+ * Description: Represents a single Dots and Boxes cell, tracking drawn edges, their colors,
+ *              and box ownership state.
+ */
 
 import java.util.EnumMap;
 import java.util.Locale;

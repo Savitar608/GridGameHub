@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- *
  * File: Team.java
  * Description: Represents a team in cooperative/competitive game modes. Holds
  *              identifying metadata allowing players to associate themselves

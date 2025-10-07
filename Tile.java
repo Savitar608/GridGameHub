@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- *
  * File: Tile.java
  * Description: Represents a single cell on the puzzle grid, tracking its
  *              coordinates, the occupying {@link GamePiece}, and lightweight

@@ -1,3 +1,8 @@
+/**
+ * File: SlidingPuzzleLeaderboard.java
+ * Description: Manages persistent leaderboard storage for the Sliding Puzzle game,
+ *              handling JSON serialization, ranking, and snapshot retrieval.
+ */
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

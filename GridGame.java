@@ -1,8 +1,5 @@
 
 /**
- * CS611 - Object Oriented Design
- * Assignment 1 - Sliding Puzzle Game
- * 
  * File: GridGame.java
  * Description: Abstract foundation for grid-based terminal games. Provides shared
  *              functionality for managing the grid, player metadata, difficulty
