@@ -27,6 +27,10 @@ import java.util.Objects;
  * Uses a {@link LinkedHashMap} to preserve insertion order, allowing for
  * predictable display of options while supporting extensibility.
  */
+/**
+ * Registry for difficulty levels exposed to players. Preserves insertion order
+ * for display and provides helpers for validation and messaging.
+ */
 public class DifficultyManager {
     private final Map<Integer, String> difficultyLevels;
 

@@ -18,6 +18,10 @@ import java.util.Objects;
  *
  * @param <T> type of game piece that can occupy the tile
  */
+/**
+ * Single cell container for the grid which holds a piece and light-weight
+ * metadata such as a recently-updated flag and last-updated timestamp.
+ */
 public final class Tile<T extends GamePiece> {
     private final int row;
     private final int col;

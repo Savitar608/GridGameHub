@@ -20,12 +20,15 @@
 /**
  * Entry point for launching the sliding puzzle application.
  */
+/**
+ * Small launcher for the Sliding Puzzle application. Creates a
+ * {@link SlidingPuzzleGame} and begins the interactive session.
+ */
 public final class SlidingPuzzle {
     /**
-     * Boots the console-based sliding puzzle game using the default
-     * input/output services.
+     * Start the sliding puzzle from the command line.
      *
-     * @param args ignored command-line parameters
+     * @param args ignored
      */
     public static void main(String[] args) {
         SlidingPuzzleGame game = new SlidingPuzzleGame();

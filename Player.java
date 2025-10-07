@@ -24,6 +24,10 @@ import java.util.Objects;
  * Represents a player in the game with their name and difficulty level
  * preference.
  */
+/**
+ * Represents a player with a name, chosen difficulty level, and per-difficulty
+ * top scores for various grid sizes.
+ */
 public class Player {
     private String name;
     private int difficultyLevel;
@@ -89,7 +93,7 @@ public class Player {
         Objects.requireNonNull(inputService, "inputService must not be null");
         Objects.requireNonNull(outputService, "outputService must not be null");
 
-        outputService.print("Enter player name (type 'quit' to exit): ");
+        outputService.print("Enter Player 1 name (type 'quit' to exit): ");
         String playerName = inputService.readLine();
 
         if (playerName == null) {

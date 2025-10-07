@@ -9,26 +9,26 @@
  */
 
 /**
- * Abstraction over output operations to simplify testing of console
- * interactions.
+ * Abstraction for writing textual output so the game can be tested or run
+ * with different output sinks (console, tests, GUIs).
  */
 public interface OutputService {
     /**
-     * Prints text without a trailing newline.
+     * Print text with no trailing newline.
      *
-     * @param message text to print
+     * @param message message to print
      */
     void print(String message);
 
     /**
-     * Prints text followed by a newline.
+     * Print text followed by a newline.
      *
-     * @param message text to print
+     * @param message message to print
      */
     void println(String message);
 
     /**
-     * Flushes any buffered output.
+     * Flush any buffered output so it appears immediately.
      */
     void flush();
 }

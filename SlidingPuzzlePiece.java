@@ -15,6 +15,10 @@
  * empty-slot semantics, enabling future expansion with additional
  * piece metadata.
  */
+/**
+ * A numbered tile for the sliding puzzle. A value of 0 denotes the shared
+ * empty tile instance.
+ */
 public final class SlidingPuzzlePiece implements GamePiece {
     private static final int EMPTY_VALUE = 0;
     private static final SlidingPuzzlePiece EMPTY_PIECE = new SlidingPuzzlePiece(EMPTY_VALUE);

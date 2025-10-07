@@ -30,6 +30,11 @@ import java.util.Random;
  * - Score calculation based on moves, time, difficulty, and grid size
  * - Contextual messaging based on selected difficulty
  */
+/**
+ * Sliding puzzle implementation built on top of {@link GridGame}. Handles
+ * solved-state construction, shuffling via valid moves (to ensure solvability),
+ * move parsing, and scoring logic.
+ */
 public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     public static final int MIN_SIZE = 3;
     public static final int MAX_SIZE = 20;
@@ -41,7 +46,14 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     private int moveCount;
     private long startTime;
 
-    private static final int DEFAULT_ROWS = 3;
+    
+    // --- TIMER (added) ---
+    private final TurnTimer<String> turnTimer = new TurnTimer<>();
+    private long spTotalMillis = 0L;
+    private int  spMoves = 0;
+    private double lastMoveSeconds = 0.0;
+    // --- END TIMER ---
+private static final int DEFAULT_ROWS = 3;
     private static final int DEFAULT_COLS = 3;
 
     private String emptyCell = "  ";
@@ -49,6 +61,17 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     private String horizontalBorder = "--+";
     private String verticalBorder = "|";
     private String cellFormat = "%2s";
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Sliding Puzzle supports regenerating the board before starting a new game.
+     */
+    @Override
+    public boolean canRegenerateBoard() {
+        return true;    // Sliding Puzzle supports regenerating the board
+}
+
 
     /**
      * Creates a sliding puzzle game using the default console input/output
@@ -178,6 +201,8 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         double exponent = 1.5;
         double gridSize = getGridSize();
 
+        // Number of random valid moves to perform to shuffle the puzzle while
+        // keeping it solvable is based on difficulty and grid area.
         return (int) (baseMultiplier * Math.pow(gridSize, exponent));
     }
 
@@ -216,6 +241,8 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     private List<int[]> getPossibleMoves() {
         List<int[]> moves = new ArrayList<>();
 
+        // Add adjacent squares (up/down/left/right) that can slide into empty
+        // position. Order is not important for correctness.
         if (emptyRow > 0) {
             moves.add(new int[] { emptyRow - 1, emptyCol });
         }
@@ -272,8 +299,9 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
      */
     @Override
     protected void makeMove(int row, int col) {
-        Tile<SlidingPuzzlePiece> sourceTile = gameGrid.getTile(row, col);
-        SlidingPuzzlePiece tilePiece = sourceTile.getOccupant();
+    // Move the piece into the empty cell and mark the source as empty.
+    Tile<SlidingPuzzlePiece> sourceTile = gameGrid.getTile(row, col);
+    SlidingPuzzlePiece tilePiece = sourceTile.getOccupant();
         if (tilePiece == null || tilePiece.isEmpty()) {
             return;
         }
@@ -315,6 +343,14 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
                 int[] move = possibleMoves.get(random.nextInt(possibleMoves.size()));
                 makeMove(move[0], move[1]);
             }
+            // Reset timer and counters after shuffling once (inside loop is okay
+            // because we want to end in a clean timing state)
+            // --- TIMER RESET (added) ---
+            turnTimer.reset();
+            spTotalMillis = 0L;
+            spMoves = 0;
+            lastMoveSeconds = 0.0;
+            // --- END TIMER RESET ---
         }
         isGameOver = false;
 
@@ -336,14 +372,17 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
 
         outputService.print(getPlayer().getName()
                 + ", which tile do you want to slide to the empty space? (type 'quit' to exit) ");
+        turnTimer.start(getPlayer().getName());
         String input = inputService.readLine();
         if (input == null || isQuitCommand(input)) {
+            turnTimer.cancel();
             requestExit();
             return;
         }
         try {
             int moveTile = Integer.parseInt(input);
             if (moveTile < 1 || moveTile > getGridSize() - 1) {
+                turnTimer.cancel();
                 outputService.println(
                         "Invalid tile number. Please enter a number between 1 and " + (getGridSize() - 1));
                 return;
@@ -356,6 +395,11 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
                         if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) ||
                                 (Math.abs(emptyCol - j) == 1 && emptyRow == i)) {
                             makeMove(i, j);
+                            long ms = turnTimer.stop(getPlayer().getName());
+                            lastMoveSeconds = ms / 1000.0;
+                            spTotalMillis += ms;
+                            spMoves++;
+                            outputService.println(String.format("⏱ Move time: %.2fs", lastMoveSeconds));
                             return;
                         }
                     }
@@ -363,7 +407,10 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
             }
 
             outputService.println("Invalid move. The tile must be adjacent to the empty space.");
+            turnTimer.cancel();
+            return;
         } catch (NumberFormatException e) {
+            turnTimer.cancel();
             displayInvalidInputMessage();
         }
     }

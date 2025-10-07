@@ -8,21 +8,22 @@
  */
 
 /**
- * Core abstraction for board game pieces, enabling concrete games
- * to supply custom metadata and rendering for their individual pieces.
+ * Minimal interface for an object that can be placed on a game grid. Each
+ * implementation provides a short token for display and a flag indicating if
+ * the piece should be treated as empty for game logic.
  */
 public interface GamePiece {
     /**
-     * Human-readable token used when rendering the piece on the board.
+     * Text token used when rendering the piece.
      *
-     * @return non-null display string (may be empty for invisible pieces)
+     * @return display token (not null)
      */
     String getDisplayToken();
 
     /**
-     * Indicates whether this piece represents an empty space.
+     * Returns true when this piece should be considered empty by game logic.
      *
-     * @return {@code true} when the piece should be treated as empty
+     * @return {@code true} if empty
      */
     boolean isEmpty();
 }

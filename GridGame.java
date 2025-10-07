@@ -23,6 +23,15 @@ import java.util.Objects;
  *
  * @param <T> The type of elements stored in the grid.
  */
+/**
+ * Abstract base class that provides common behavior and contracts for
+ * grid-based games (Sliding Puzzle, Dots & Boxes).
+ *
+ * Subclasses must implement lifecycle hooks such as size selection,
+ * initialization, rendering, and move processing.
+ *
+ * @param <T> element type contained in the grid
+ */
 public abstract class GridGame<T extends GamePiece> {
     protected Grid<T> gameGrid;
     protected boolean isGameOver;
@@ -32,6 +41,17 @@ public abstract class GridGame<T extends GamePiece> {
     private final OutputService outputService;
     private final GameController gameController;
     private boolean exitRequested;
+    /**
+     * Indicates whether the game supports regenerating the board before starting
+     * a new round.
+     *
+     * @return {@code true} if the game allows pre-game board regeneration;
+     *         otherwise {@code false}
+     */
+    public boolean canRegenerateBoard() {
+    return false;   // default: no pre-game regenerate option
+}
+
 
     protected static final String QUIT_KEYWORD = "quit";
 

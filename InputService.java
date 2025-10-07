@@ -8,19 +8,20 @@
  */
 
 /**
- * Defines an abstraction for reading user input, enabling alternate input
- * sources for testing.
+ * Abstraction for reading textual input from the user. Implementations may
+ * read from the console, from test fixtures, or from other sources.
  */
 public interface InputService extends AutoCloseable {
     /**
-     * Reads the next line of input.
+     * Reads the next available line of input.
      *
-     * @return the next line, or {@code null} if no more input is available
+     * @return the next input line, or {@code null} when end-of-stream is reached
      */
     String readLine();
 
     /**
-     * Releases any underlying resources held by the input source.
+     * Close and release any underlying resources associated with the input
+     * source (for example, a Scanner or stream).
      */
     @Override
     void close();

@@ -41,9 +41,10 @@ public class GameController {
         InputService inputService = game.getInputService();
         OutputService outputService = game.getOutputService();
 
-        game.resetGameState();
-        game.displayWelcomeMessage();
-        configurePlayer(game, inputService, outputService);
+    // Reset transient state and show the welcome/instructions for the game
+    game.resetGameState();
+    game.displayWelcomeMessage();
+    configurePlayer(game, inputService, outputService);
 
         if (game.isExitRequested()) {
             outputService.println("Exiting game. Goodbye!");
@@ -60,9 +61,12 @@ public class GameController {
                 break;
             }
 
-            configureDifficulty(game, inputService, outputService);
-            if (game.isExitRequested()) {
-                break;
+            // Skip difficulty configuration for Dots & Boxes (multiplayer game)
+            if (!(game instanceof DotsAndBoxesGame)) {
+                configureDifficulty(game, inputService, outputService);
+                if (game.isExitRequested()) {
+                    break;
+                }
             }
 
             game.initializeGame();
@@ -112,6 +116,7 @@ public class GameController {
 
     /**
      * Captures the player's name using the configured input and output services.
+     * For multiplayer games, also captures the second player's name.
      *
      * @param game          the game providing player context
      * @param inputService  input source for player responses
@@ -122,6 +127,25 @@ public class GameController {
         boolean continueGame = player.promptForName(inputService, outputService);
         if (!continueGame) {
             game.requestExit();
+            return;
+        }
+
+    // For multiplayer games, also capture the second player's name
+        if (game instanceof DotsAndBoxesGame) {
+            DotsAndBoxesGame dotsGame = (DotsAndBoxesGame) game;
+            outputService.print("Enter Player 2 name (default: Player 2): ");
+            String player2Name = inputService.readLine();
+            if (player2Name == null) {
+                game.requestExit();
+                return;
+            }
+            if (game.isQuitCommand(player2Name)) {
+                game.requestExit();
+                return;
+            }
+            if (!player2Name.trim().isEmpty()) {
+                dotsGame.setPlayer2Name(player2Name.trim());
+            }
         }
     }
 
@@ -142,6 +166,7 @@ public class GameController {
 
         Player player = game.getPlayer();
 
+        // Build a simple comma-separated list of available difficulty options
         StringBuilder optionsBuilder = new StringBuilder();
         for (int i = 0; i < levels.size(); i++) {
             int level = levels.get(i);
@@ -211,6 +236,7 @@ public class GameController {
                 return false;
             }
 
+            // Normalize input for simple matching
             response = response.trim().toLowerCase(Locale.ROOT);
             if (game.isQuitCommand(response)) {
                 game.requestExit();
@@ -240,42 +266,62 @@ public class GameController {
      * @return {@code true} when gameplay should begin; {@code false} if the
      *         player exits the pre-game menu
      */
-    private boolean presentPreGameOptions(GridGame<?> game, InputService inputService, OutputService outputService) {
-        while (!game.isExitRequested()) {
-            outputService.println(
-                    "Choose an option: [start] Begin game, [regen] Regenerate board, [scores] View top scores, [quit] Exit");
-            String choice = inputService.readLine();
+    private boolean presentPreGameOptions(GridGame<?> game,
+                                      InputService inputService,
+                                      OutputService outputService) {
+    // Loop until player chooses to start or quit the pre-game menu
+    while (!game.isExitRequested()) {
 
-            if (choice == null || game.isQuitCommand(choice)) {
+        outputService.println("");
+        outputService.println("Choose an option:");
+        outputService.println("  [1] Start the game");
+        if (game.canRegenerateBoard()) {
+            outputService.println("  [2] Regenerate the board");
+            outputService.println("  [3] View top scores");
+        } else {
+            outputService.println("  [2] View top scores");
+        }
+        outputService.println("  [q] Quit");
+        outputService.print("> ");
+
+        String choice = inputService.readLine();
+        if (choice == null) { game.requestExit(); return false; }
+        choice = choice.trim().toLowerCase();
+
+        // Map numeric menu entries to the textual commands used in the
+        // subsequent switch. This simplifies user input handling.
+        if (choice.equals("1")) {
+            choice = "start";
+        } else if (choice.equals("2")) {
+            choice = game.canRegenerateBoard() ? "regen" : "scores";
+        } else if (choice.equals("3") && game.canRegenerateBoard()) {
+            choice = "scores";
+        } else if (choice.equals("q")) {
+            choice = "quit";
+        }
+
+        switch (choice) {
+            case "start":
+                return true;
+            case "regen":
+                if (game.canRegenerateBoard()) {
+                    game.initializeGame(); // regenerate once more before starting
+                } else {
+                    outputService.println("Regenerate is not available for this game.");
+                }
+                break;
+            case "scores":
+                displayPlayerTopScores(game, outputService);
+                break;
+            case "quit":
                 game.requestExit();
                 return false;
-            }
-
-            String normalized = choice.trim().toLowerCase(Locale.ROOT);
-            switch (normalized) {
-                case "start":
-                case "s":
-                    return true;
-                case "regen":
-                case "r":
-                case "regenerate":
-                    game.initializeGame();
-                    if (game.isExitRequested()) {
-                        return false;
-                    }
-                    outputService.println("Board regenerated.");
-                    game.displayGrid();
-                    break;
-                case "scores":
-                case "score":
-                case "top":
-                    displayPlayerTopScores(game, outputService);
-                    break;
-                default:
-                    outputService.println("Please choose 'start', 'regen', 'scores', or 'quit'.");
-            }
+            default:
+                outputService.println("Invalid option. Please choose again.");
+                break;
         }
-        return false;
+    }
+    return false;
     }
 
     /**
@@ -305,6 +351,7 @@ public class GameController {
                 String difficultyName = game.getDifficultyManager().getDifficultyName(level);
                 outputService.println(difficultyName + " (Level " + level + "):");
 
+                // Sort grid size keys by area (rows*cols) first, then lexicographically
                 List<String> gridSizes = new ArrayList<>(gridScores.keySet());
                 gridSizes.sort((a, b) -> {
                     int areaA = parseGridArea(a);

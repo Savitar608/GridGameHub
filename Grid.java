@@ -27,6 +27,12 @@ import java.util.Objects;
  *
  * @param <T> type of {@link GamePiece} stored within the grid tiles
  */
+/**
+ * Generic 2D grid container used by the games to manage tiles and pieces.
+ * Provides utilities for safe access, resizing, and iteration.
+ *
+ * @param <T> type of GamePiece stored in the grid
+ */
 public class Grid<T extends GamePiece> {
     private Tile<T>[][] grid;
     private int rows;
@@ -182,6 +188,7 @@ public class Grid<T extends GamePiece> {
                     "List size (" + values.size() + ") must match grid size (" + (rows * cols) + ")");
         }
 
+        // Fill using iterator to preserve insertion order provided by caller
         Iterator<T> iterator = values.iterator();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -231,7 +238,6 @@ public class Grid<T extends GamePiece> {
      *
      * @return A new Grid instance with the same contents
      */
-    @SuppressWarnings("unchecked")
     public Grid<T> copy() {
         Grid<T> newGrid = new Grid<>(componentType, rows, cols);
         for (int i = 0; i < rows; i++) {
@@ -267,6 +273,7 @@ public class Grid<T extends GamePiece> {
             }
         }
 
+        // Copy overlapping region from the old grid into the new grid
         int copyRows = Math.min(rows, newRows);
         int copyCols = Math.min(cols, newCols);
         for (int i = 0; i < copyRows; i++) {
