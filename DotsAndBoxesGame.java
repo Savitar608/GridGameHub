@@ -442,6 +442,10 @@ public final class DotsAndBoxesGame extends GridGame<DotsAndBoxesCell> {
         Player currentPlayer = getActivePlayer();
 
         outputService.print(String.format(Locale.ROOT,
+                "Note: Board is %dx%d. Rows and columns are 1-indexed.\n1-based indexing means the top-left corner is (1, 1).\n",
+                gameGrid.getRows(), gameGrid.getCols()));
+
+        outputService.print(String.format(Locale.ROOT,
                 "%s, enter your move as 'row col side' (side = T/B/L/R) or 'quit': ",
                 currentPlayer.getName()));
         String input = readLineTrimmed(inputService);
