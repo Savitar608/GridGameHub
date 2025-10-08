@@ -1,0 +1,419 @@
+
+/**
+ * File: GridGame.java
+ * Description: Abstract foundation for grid-based terminal games. Provides shared
+ *              functionality for managing the grid, player metadata, difficulty
+ *              levels, and the overall game loop orchestration through the
+ *              {@link GameController}.
+ * 
+ * Features:
+ * - Shared grid access helpers for subclasses
+ * - Difficulty management via {@link DifficultyManager}
+ * - Player information capture and validation
+ * - Delegated game loop coordination through {@link GameController}
+ */
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * An abstract base class for grid-based terminal games.
+ *
+ * @param <T> The type of elements stored in the grid.
+ */
+public abstract class GridGame<T extends GamePiece> {
+    protected Grid<T> gameGrid;
+    protected boolean isGameOver;
+    protected final List<Player> players;
+    private int activePlayerIndex;
+    protected final DifficultyManager difficultyManager;
+    private final InputService inputService;
+    private final OutputService outputService;
+    private final GameController gameController;
+    private boolean exitRequested;
+
+    protected static final String QUIT_KEYWORD = "quit";
+
+    /**
+     * Constructor to initialize the game.
+     *
+     * @param componentType The class type of grid elements
+     * @param rows          The number of rows in the grid.
+     * @param cols          The number of columns in the grid.
+     */
+    public GridGame(Class<T> componentType, int rows, int cols) {
+        this(componentType, rows, cols, new ConsoleInputService(), new ConsoleOutputService());
+    }
+
+    /**
+     * Constructs a grid game that uses the provided input and output services.
+     *
+     * @param componentType the element type stored within the grid
+     * @param rows          total rows in the grid
+     * @param cols          total columns in the grid
+     * @param inputService  input provider used during gameplay
+     * @param outputService output destination used during gameplay
+     */
+    protected GridGame(Class<T> componentType, int rows, int cols,
+            InputService inputService,
+            OutputService outputService) {
+        this.gameGrid = new Grid<>(componentType, rows, cols);
+        this.isGameOver = false;
+        this.players = new ArrayList<>();
+        this.players.add(new Player());
+        this.activePlayerIndex = 0;
+        this.difficultyManager = new DifficultyManager();
+        this.inputService = Objects.requireNonNull(inputService, "inputService must not be null");
+        this.outputService = Objects.requireNonNull(outputService, "outputService must not be null");
+
+        initializeDefaultDifficultyLevels();
+        this.gameController = new GameController();
+        this.exitRequested = false;
+    }
+
+    /**
+     * Starts the game by delegating to the internal controller.
+     */
+    public void startGame() {
+        gameController.run(this);
+    }
+
+    /**
+     * Retrieves the number of rows currently configured for the grid.
+     *
+     * @return row count of the grid
+     */
+    protected int getRows() {
+        return gameGrid.getRows();
+    }
+
+    /**
+     * Retrieves the number of columns currently configured for the grid.
+     *
+     * @return column count of the grid
+     */
+    protected int getCols() {
+        return gameGrid.getCols();
+    }
+
+    /**
+     * Provides the total number of cells in the grid.
+     *
+     * @return total cell count (rows * cols)
+     */
+    protected int getGridSize() {
+        return gameGrid.getSize();
+    }
+
+    /**
+     * Initializes the default difficulty levels. Can be overridden by subclasses.
+     */
+    /**
+     * Defines baseline difficulty levels shared across grid-based games. Games can
+     * override this to supply their own presets.
+     */
+    protected void initializeDefaultDifficultyLevels() {
+        difficultyManager.clear();
+        difficultyManager.addDifficultyLevel(1, "Easy");
+        difficultyManager.addDifficultyLevel(2, "Medium");
+        difficultyManager.addDifficultyLevel(3, "Hard");
+    }
+
+    /**
+     * Registers a new difficulty level with the underlying manager.
+     *
+     * @param level numeric identifier for the difficulty
+     * @param name  human-readable label presented to the player
+     */
+    protected void addDifficultyLevel(int level, String name) {
+        difficultyManager.addDifficultyLevel(level, name);
+    }
+
+    /**
+     * Looks up the configured display name for the supplied difficulty level.
+     *
+     * @param level difficulty identifier
+     * @return readable label associated with the level
+     */
+    protected String getDifficultyName(int level) {
+        return difficultyManager.getDifficultyName(level);
+    }
+
+    /**
+     * Checks whether the specified difficulty level exists in the registry.
+     *
+     * @param level difficulty identifier to query
+     * @return {@code true} if a matching level is configured; otherwise
+     *         {@code false}
+     */
+    protected boolean isValidDifficultyLevel(int level) {
+        return difficultyManager.isValidDifficultyLevel(level);
+    }
+
+    /**
+     * Resets transient game metadata to prepare for a new round.
+     */
+    public void resetGameState() {
+        this.isGameOver = false;
+        this.activePlayerIndex = 0;
+    }
+
+    /**
+     * Updates the game-over flag.
+     *
+     * @param gameOver {@code true} to mark the game as complete
+     */
+    public void setGameOver(boolean gameOver) {
+        this.isGameOver = gameOver;
+    }
+
+    /**
+     * Indicates whether the current game has concluded.
+     *
+     * @return {@code true} when the game has ended
+     */
+    public boolean isGameOver() {
+        return isGameOver;
+    }
+
+    /**
+     * Indicates whether the player has requested to terminate the current session.
+     *
+     * @return {@code true} when the game should exit gracefully
+     */
+    public boolean isExitRequested() {
+        return exitRequested;
+    }
+
+    /**
+     * Flags the game loop to exit and marks the game as over.
+     */
+    protected void requestExit() {
+        this.exitRequested = true;
+        this.isGameOver = true;
+    }
+
+    /**
+     * Evaluates whether the supplied input matches the quit keyword.
+     *
+     * @param input player-provided text to evaluate
+     * @return {@code true} if the input requests termination of the game
+     */
+    protected boolean isQuitCommand(String input) {
+        return input != null && QUIT_KEYWORD.equalsIgnoreCase(input.trim());
+    }
+
+    /**
+     * Provides access to the configured input service.
+     *
+     * @return active input service
+     */
+    public InputService getInputService() {
+        return inputService;
+    }
+
+    /**
+     * Provides access to the configured output service.
+     *
+     * @return active output service
+     */
+    public OutputService getOutputService() {
+        return outputService;
+    }
+
+    /**
+     * Returns the player metadata associated with this game instance.
+     *
+     * @return player configuration
+     */
+    public Player getPlayer() {
+        ensurePrimaryPlayer();
+        return players.get(0);
+    }
+
+    /**
+     * Provides an immutable view of the registered players.
+     *
+     * @return ordered list of players participating in the game
+     */
+    public List<Player> getPlayers() {
+        return Collections.unmodifiableList(players);
+    }
+
+    /**
+     * Returns the player whose turn it currently is.
+     *
+     * @return active player
+     */
+    public Player getActivePlayer() {
+        ensurePrimaryPlayer();
+        if (activePlayerIndex < 0 || activePlayerIndex >= players.size()) {
+            activePlayerIndex = 0;
+        }
+        return players.get(activePlayerIndex);
+    }
+
+    /**
+     * Advances play to the next registered player.
+     */
+    protected void advanceToNextPlayer() {
+        if (players.isEmpty()) {
+            return;
+        }
+        activePlayerIndex = (activePlayerIndex + 1) % players.size();
+    }
+
+    /**
+     * Updates the active player index.
+     *
+     * @param index zero-based index of the next active player
+     */
+    protected void setActivePlayerIndex(int index) {
+        if (players.isEmpty()) {
+            activePlayerIndex = 0;
+            return;
+        }
+        if (index < 0 || index >= players.size()) {
+            throw new IllegalArgumentException("Active player index out of bounds");
+        }
+        activePlayerIndex = index;
+    }
+
+    /**
+     * Removes all previously registered players and resets the active player
+     * pointer.
+     */
+    protected void clearPlayers() {
+        players.clear();
+        activePlayerIndex = 0;
+    }
+
+    /**
+     * Registers a player for participation in this game.
+     *
+     * @param player player to add
+     */
+    protected void addPlayer(Player player) {
+        players.add(Objects.requireNonNull(player, "player must not be null"));
+    }
+
+    /**
+     * Default player configuration logic which prompts for a single participant.
+     * Games supporting multiple participants can override for richer behavior.
+     *
+     * @param inputService  input service used for prompts
+     * @param outputService output service used for messaging
+     * @return {@code true} if gameplay should continue, {@code false} otherwise
+     */
+    protected boolean configurePlayers(InputService inputService, OutputService outputService) {
+        Player primaryPlayer = getPlayer();
+        boolean continueGame = primaryPlayer.promptForName(inputService, outputService);
+        if (!continueGame) {
+            requestExit();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Indicates whether the game supports difficulty selection.
+     *
+     * @return {@code true} when the difficulty menu should be displayed
+     */
+    public boolean supportsDifficultySelection() {
+        return true;
+    }
+
+    /**
+     * Indicates whether player-specific top scores should be displayed.
+     *
+     * @return {@code true} when the top score menu should be available
+     */
+    public boolean supportsTopScores() {
+        return true;
+    }
+
+    /**
+     * Indicates whether the player should be allowed to regenerate or reshuffle
+     * the board prior to starting the round.
+     *
+     * @return {@code true} when the pre-game regeneration option is supported
+     */
+    public boolean supportsBoardRegeneration() {
+        return true;
+    }
+
+    private void ensurePrimaryPlayer() {
+        if (players.isEmpty()) {
+            players.add(new Player());
+            activePlayerIndex = 0;
+        }
+    }
+
+    /**
+     * Exposes the difficulty manager, allowing subclasses to customize levels.
+     *
+     * @return shared difficulty manager
+     */
+    public DifficultyManager getDifficultyManager() {
+        return difficultyManager;
+    }
+
+    /**
+     * Verifies that the configured grid size remains within valid bounds for the
+     * concrete game implementation.
+     */
+    protected abstract void validateSize();
+
+    /**
+     * Prompts for and applies the grid dimensions used for the next round.
+     */
+    protected abstract void setSize();
+
+    /**
+     * Displays an introduction to the player explaining how to play the game.
+     */
+    protected abstract void displayWelcomeMessage();
+
+    /**
+     * Populates the grid and any ancillary state ahead of gameplay.
+     */
+    protected abstract void initializeGame();
+
+    /**
+     * Renders the current game board state to the player.
+     */
+    protected abstract void displayGrid();
+
+    /**
+     * Processes a single unit of player input within the game loop.
+     */
+    protected abstract void processUserInput();
+
+    /**
+     * Executes the low-level move logic for the concrete game implementation.
+     *
+     * @param row row index of the piece to move
+     * @param col column index of the piece to move
+     */
+    protected abstract void makeMove(int row, int col);
+
+    /**
+     * Informs the player that their input could not be processed.
+     */
+    protected abstract void displayInvalidInputMessage();
+
+    /**
+     * Determines whether the player has satisfied the game's win condition.
+     *
+     * @return {@code true} when the puzzle is solved
+     */
+    protected abstract boolean checkWinCondition();
+
+    /**
+     * Presents the victory screen and end-of-game summary to the player.
+     */
+    protected abstract void displayWinMessage();
+}
