@@ -571,7 +571,8 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     }
 
     public List<SlidingPuzzleLeaderboard.LeaderboardEntry> getTopScoresForCurrentGrid() {
-        return SlidingPuzzleLeaderboard.getTopEntriesForGrid(getRows(), getCols());
+        return SlidingPuzzleLeaderboard.getTopEntriesForGrid(getRows(), getCols(),
+                getPlayer().getDifficultyLevel());
     }
 
     /**

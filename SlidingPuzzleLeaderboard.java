@@ -1,3 +1,4 @@
+
 /**
  * File: SlidingPuzzleLeaderboard.java
  * Description: Manages persistent leaderboard storage for the Sliding Puzzle game,
@@ -46,7 +47,7 @@ public final class SlidingPuzzleLeaderboard {
      * @return snapshot containing ordered leaderboard entries
      */
     public static LeaderboardSnapshot recordScore(String playerName, int score, int rows, int cols,
-        String difficultyLabel, int difficultyLevel) {
+            String difficultyLabel, int difficultyLevel) {
         List<LeaderboardEntry> history = loadEntries();
         history.add(new LeaderboardEntry(playerName, score, rows, cols, difficultyLabel, difficultyLevel,
                 Instant.now().toEpochMilli()));
@@ -66,13 +67,15 @@ public final class SlidingPuzzleLeaderboard {
     }
 
     /**
-     * Retrieves the highest scoring entries recorded for the specified grid size.
+     * Retrieves the highest scoring entries recorded for the specified grid size
+     * and difficulty level.
      *
-     * @param rows number of puzzle rows to filter by
-     * @param cols number of puzzle columns to filter by
+     * @param rows            number of puzzle rows to filter by
+     * @param cols            number of puzzle columns to filter by
+     * @param difficultyLevel difficulty level to match exactly
      * @return ordered list of top entries (may be empty)
      */
-    public static List<LeaderboardEntry> getTopEntriesForGrid(int rows, int cols) {
+    public static List<LeaderboardEntry> getTopEntriesForGrid(int rows, int cols, int difficultyLevel) {
         List<LeaderboardEntry> history = loadEntries();
         if (history.isEmpty()) {
             return Collections.emptyList();
@@ -80,7 +83,8 @@ public final class SlidingPuzzleLeaderboard {
 
         List<LeaderboardEntry> matches = new ArrayList<>();
         for (LeaderboardEntry entry : history) {
-            if (entry.getRows() == rows && entry.getCols() == cols) {
+            if (entry.getRows() == rows && entry.getCols() == cols
+                    && entry.getDifficultyLevel() == difficultyLevel) {
                 matches.add(entry);
             }
         }
@@ -225,7 +229,8 @@ public final class SlidingPuzzleLeaderboard {
     }
 
     /**
-     * Extracts a string value for the given key from a JSON object, handling escaped characters.
+     * Extracts a string value for the given key from a JSON object, handling
+     * escaped characters.
      */
     private static String extractString(String jsonObject, String key) {
         Pattern pattern = Pattern
@@ -273,8 +278,8 @@ public final class SlidingPuzzleLeaderboard {
      * Builds an immutable snapshot of the leaderboard, including a player's
      * personal best when requested.
      *
-     * @param history         all known leaderboard entries
-     * @param focusPlayerKey  normalized player key to highlight, or {@code null}
+     * @param history        all known leaderboard entries
+     * @param focusPlayerKey normalized player key to highlight, or {@code null}
      * @return computed snapshot
      */
     private static LeaderboardSnapshot buildSnapshot(List<LeaderboardEntry> history, String focusPlayerKey) {
@@ -484,10 +489,10 @@ public final class SlidingPuzzleLeaderboard {
             return ISO_FORMATTER.format(Instant.ofEpochMilli(recordedAt));
         }
 
-    /**
-     * Serializes the entry into a compact JSON object representation.
-     */
-    private String toJson() {
+        /**
+         * Serializes the entry into a compact JSON object representation.
+         */
+        private String toJson() {
             StringBuilder builder = new StringBuilder();
             builder.append("{")
                     .append("\"player\":\"").append(escapeJson(playerName)).append("\",")

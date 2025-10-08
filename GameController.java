@@ -21,7 +21,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-
 /**
  * Coordinates the execution of a {@link GridGame} by running the game loop and
  * managing replay prompts.
@@ -32,12 +31,14 @@ public class GameController {
      * Starts the interactive game session, coordinating pre-game configuration,
      * the main gameplay loop, and replay prompts until the player exits.
      *
-     * <p>The supplied {@link GridGame} is expected to fully manage user
+     * <p>
+     * The supplied {@link GridGame} is expected to fully manage user
      * interaction via its {@link InputService} and {@link OutputService}.
      * The controller resets transient state, walks through pre-game menus and
      * difficulty selection (when supported), and repeatedly drives the game loop
      * until the player either wins, chooses not to replay, or issues a quit
-     * command.</p>
+     * command.
+     * </p>
      *
      * @param game the grid-based game instance to orchestrate
      */
@@ -114,7 +115,7 @@ public class GameController {
             keepPlaying = promptPlayAgain(game, inputService, outputService);
         }
 
-    outputService.println("Thanks for playing! Goodbye!");
+        outputService.println("Thanks for playing! Goodbye!");
         inputService.close();
     }
 
@@ -319,7 +320,7 @@ public class GameController {
                 }
 
                 String difficultyName = game.getDifficultyManager().getDifficultyName(level);
-                outputService.println("  " + difficultyName + " (Level " + level + "):" );
+                outputService.println("  " + difficultyName + " (Level " + level + "):");
 
                 List<String> gridSizes = new ArrayList<>(gridScores.keySet());
                 gridSizes.sort((a, b) -> {
@@ -340,10 +341,12 @@ public class GameController {
         if (game instanceof SlidingPuzzleGame) {
             SlidingPuzzleGame slidingGame = (SlidingPuzzleGame) game;
             List<SlidingPuzzleLeaderboard.LeaderboardEntry> gridLeaderboard = slidingGame.getTopScoresForCurrentGrid();
+            int difficultyLevel = slidingGame.getPlayer().getDifficultyLevel();
+            String difficultyLabel = slidingGame.getDifficultyManager().getDifficultyName(difficultyLevel);
 
             outputService.println("");
-            outputService.println(String.format(Locale.ROOT, "=== GLOBAL TOP SCORES (%dx%d) ===",
-                    slidingGame.getRows(), slidingGame.getCols()));
+            outputService.println(String.format(Locale.ROOT, "=== GLOBAL TOP SCORES (%dx%d, %s) ===",
+                    slidingGame.getRows(), slidingGame.getCols(), difficultyLabel));
 
             if (gridLeaderboard.isEmpty()) {
                 outputService.println("No global scores recorded yet for this grid size.");
