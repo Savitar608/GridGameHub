@@ -570,6 +570,10 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         }
     }
 
+    public List<SlidingPuzzleLeaderboard.LeaderboardEntry> getTopScoresForCurrentGrid() {
+        return SlidingPuzzleLeaderboard.getTopEntriesForGrid(getRows(), getCols());
+    }
+
     /**
      * Parses a grid key (e.g., {@code 4x5}) into its total cell count.
      *

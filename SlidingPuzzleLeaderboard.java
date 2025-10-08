@@ -66,6 +66,41 @@ public final class SlidingPuzzleLeaderboard {
     }
 
     /**
+     * Retrieves the highest scoring entries recorded for the specified grid size.
+     *
+     * @param rows number of puzzle rows to filter by
+     * @param cols number of puzzle columns to filter by
+     * @return ordered list of top entries (may be empty)
+     */
+    public static List<LeaderboardEntry> getTopEntriesForGrid(int rows, int cols) {
+        List<LeaderboardEntry> history = loadEntries();
+        if (history.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<LeaderboardEntry> matches = new ArrayList<>();
+        for (LeaderboardEntry entry : history) {
+            if (entry.getRows() == rows && entry.getCols() == cols) {
+                matches.add(entry);
+            }
+        }
+
+        if (matches.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        matches.sort(Comparator.comparingInt(LeaderboardEntry::getScore).reversed()
+                .thenComparingLong(LeaderboardEntry::getRecordedAt)
+                .thenComparing(entry -> entry.getPlayerName().toLowerCase(Locale.ROOT)));
+
+        if (matches.size() > LEADERBOARD_LIMIT) {
+            matches = new ArrayList<>(matches.subList(0, LEADERBOARD_LIMIT));
+        }
+
+        return Collections.unmodifiableList(matches);
+    }
+
+    /**
      * Loads all leaderboard entries from disk, returning an empty list when the
      * file is absent or unreadable.
      */

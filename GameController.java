@@ -21,6 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+
 /**
  * Coordinates the execution of a {@link GridGame} by running the game loop and
  * managing replay prompts.
@@ -332,6 +333,26 @@ public class GameController {
 
                 for (String gridSize : gridSizes) {
                     outputService.println("    " + gridSize + " -> " + gridScores.get(gridSize));
+                }
+            }
+        }
+
+        if (game instanceof SlidingPuzzleGame) {
+            SlidingPuzzleGame slidingGame = (SlidingPuzzleGame) game;
+            List<SlidingPuzzleLeaderboard.LeaderboardEntry> gridLeaderboard = slidingGame.getTopScoresForCurrentGrid();
+
+            outputService.println("");
+            outputService.println(String.format(Locale.ROOT, "=== GLOBAL TOP SCORES (%dx%d) ===",
+                    slidingGame.getRows(), slidingGame.getCols()));
+
+            if (gridLeaderboard.isEmpty()) {
+                outputService.println("No global scores recorded yet for this grid size.");
+            } else {
+                int position = 1;
+                for (SlidingPuzzleLeaderboard.LeaderboardEntry entry : gridLeaderboard) {
+                    outputService.println(String.format(Locale.ROOT,
+                            "  %d. %s - %d pts (%s)",
+                            position++, entry.getPlayerName(), entry.getScore(), entry.getDifficultyDisplay()));
                 }
             }
         }
