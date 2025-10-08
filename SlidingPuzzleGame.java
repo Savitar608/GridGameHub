@@ -19,9 +19,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
-
 /**
- * Sliding puzzle game implementation extending the generic {@link GridGame} framework.
+ * Sliding puzzle game implementation extending the generic {@link GridGame}
+ * framework.
  * Provides specific functionality for the sliding puzzle mechanics.
  * - Customizable grid initialization and shuffling
  * - Move validation and tracking
@@ -38,6 +38,8 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
     private int currentScore;
     private int moveCount;
     private long startTime;
+    private PuzzleSnapshot pendingUndo;
+    private boolean undoUsed;
 
     private static final int DEFAULT_ROWS = 3;
     private static final int DEFAULT_COLS = 3;
@@ -243,6 +245,7 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         outputService.println("    WELCOME TO THE SLIDING PUZZLE GAME!  ");
         outputService.println("=========================================");
         outputService.println("Type 'quit' at any prompt to exit the game.");
+        outputService.println("Type 'undo' once per game to revert your most recent move.");
         outputService.println("\n--- How to Play ---");
         outputService
                 .println("1. Objective: Arrange the numbers in ascending order, from left to right, top to bottom.");
@@ -319,6 +322,8 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         currentScore = 0;
         moveCount = 0;
         startTime = System.currentTimeMillis();
+        pendingUndo = null;
+        undoUsed = false;
     }
 
     /**
@@ -333,14 +338,33 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
         InputService inputService = getInputService();
 
         outputService.print(getPlayer().getName()
-                + ", which tile do you want to slide to the empty space? (type 'quit' to exit) ");
+                + ", which tile do you want to slide to the empty space? (type 'undo' or 'quit') ");
         String input = inputService.readLine();
         if (input == null || isQuitCommand(input)) {
             requestExit();
             return;
         }
+
+        String trimmedInput = input.trim();
+        if ("undo".equalsIgnoreCase(trimmedInput) || "u".equalsIgnoreCase(trimmedInput)) {
+            if (undoUsed) {
+                outputService.println("Undo already used for this game.");
+                return;
+            }
+            if (pendingUndo == null) {
+                outputService.println("No moves available to undo yet.");
+                return;
+            }
+
+            restorePuzzleSnapshot(pendingUndo);
+            pendingUndo = null;
+            undoUsed = true;
+            setGameOver(false);
+            outputService.println("Last move undone. Further undos are not available.");
+            return;
+        }
         try {
-            int moveTile = Integer.parseInt(input);
+            int moveTile = Integer.parseInt(trimmedInput);
             if (moveTile < 1 || moveTile > getGridSize() - 1) {
                 outputService.println(
                         "Invalid tile number. Please enter a number between 1 and " + (getGridSize() - 1));
@@ -353,6 +377,9 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
                     if (candidate != null && candidate.hasValue(moveTile)) {
                         if ((Math.abs(emptyRow - i) == 1 && emptyCol == j) ||
                                 (Math.abs(emptyCol - j) == 1 && emptyRow == i)) {
+                            if (!undoUsed) {
+                                pendingUndo = capturePuzzleSnapshot();
+                            }
                             makeMove(i, j);
                             return;
                         }
@@ -593,6 +620,58 @@ public final class SlidingPuzzleGame extends GridGame<SlidingPuzzlePiece> {
             return rows * cols;
         } catch (NumberFormatException ex) {
             return Integer.MAX_VALUE;
+        }
+    }
+
+    private PuzzleSnapshot capturePuzzleSnapshot() {
+        int rows = getRows();
+        int cols = getCols();
+        int[][] values = new int[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                SlidingPuzzlePiece piece = gameGrid.getPiece(i, j);
+                values[i][j] = piece == null ? 0 : piece.getValue();
+            }
+        }
+        return new PuzzleSnapshot(values, emptyRow, emptyCol, moveCount, currentScore, isGameOver());
+    }
+
+    private void restorePuzzleSnapshot(PuzzleSnapshot snapshot) {
+        int rows = snapshot.gridValues.length;
+        int cols = snapshot.gridValues[0].length;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                int value = snapshot.gridValues[i][j];
+                SlidingPuzzlePiece piece = (value == 0)
+                        ? SlidingPuzzlePiece.empty()
+                        : SlidingPuzzlePiece.ofValue(value);
+                gameGrid.setPiece(i, j, piece);
+            }
+        }
+
+        emptyRow = snapshot.emptyRow;
+        emptyCol = snapshot.emptyCol;
+        moveCount = snapshot.moveCount;
+        currentScore = snapshot.currentScore;
+        setGameOver(snapshot.gameOver);
+    }
+
+    private static final class PuzzleSnapshot {
+        private final int[][] gridValues;
+        private final int emptyRow;
+        private final int emptyCol;
+        private final int moveCount;
+        private final int currentScore;
+        private final boolean gameOver;
+
+        private PuzzleSnapshot(int[][] gridValues, int emptyRow, int emptyCol,
+                int moveCount, int currentScore, boolean gameOver) {
+            this.gridValues = gridValues;
+            this.emptyRow = emptyRow;
+            this.emptyCol = emptyCol;
+            this.moveCount = moveCount;
+            this.currentScore = currentScore;
+            this.gameOver = gameOver;
         }
     }
 }
