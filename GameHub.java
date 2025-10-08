@@ -9,17 +9,11 @@
  * games built on the grid framework.
  */
 public final class GameHub {
-    private GameHub() {
-        // Utility class; prevent instantiation.
-    }
-
     /**
      * Entry point presenting the hub menu, routing users to the available games,
      * or exiting when requested.
-     *
-     * @param args command-line arguments (unused)
      */
-    public static void main(String[] args) {
+    public static void start() {
         java.util.Scanner sharedScanner = new java.util.Scanner(System.in);
         SharedConsoleInputService sharedInput = new SharedConsoleInputService(sharedScanner);
         ConsoleOutputService outputService = new ConsoleOutputService();
